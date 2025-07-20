@@ -1,4 +1,5 @@
 'use client';
+import { useRouter } from "next/navigation";
 
 import {
   NavigationMenu,
@@ -6,23 +7,19 @@ import {
   NavigationMenuList,
   NavigationMenuLink,
 } from "@/components/ui/navigation-menu";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
-import { ChevronDown } from "lucide-react";
+import UserDropdown from "../UserDropdown";
 
 export default function Navbar() {
   const { data: session, status } = useSession();
   const user = session?.user;
+
+  if (!user) return null; 
+
+  const router = useRouter();
 
   return (
     <nav className="bg-[#14326E] px-6 py-4 shadow text-white">
@@ -56,40 +53,8 @@ export default function Navbar() {
 
           {/* Auth Section */}
           {status === "authenticated" ? (
-           <DropdownMenu>
-           <DropdownMenuTrigger asChild>
-             <div className="flex items-center gap-1 cursor-pointer">
-             <Avatar className="h-8 w-8 border-2 border-[#14326E] bg-white text-[#14326E]">
-
-                 <AvatarFallback>
-                   {user?.name?.charAt(0) || "U"}
-                 </AvatarFallback>
-               </Avatar>
-               {/* <ChevronDown size={16} className="text-white" /> */}
-             </div>
-           </DropdownMenuTrigger>
-         
-           <DropdownMenuContent className="w-auto bg-white text-gray-800 p-2 mr-4">
-             <div className="text-center space-y-1 py-2">
-               <p className="text-sm text-gray-600">👋 Hello,</p>
-               <p className="font-semibold text-base">{user?.name || "User"}</p>
-               {user?.role && (
-                 <p className="text-xs text-gray-500 font-medium">
-                   {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
-                 </p>
-               )}
-             </div>
-             <DropdownMenuSeparator />
-             <DropdownMenuItem
-               onClick={() => signOut()}
-               className="cursor-pointer hover:bg-gray-100 justify-center font-bold"
-             >
-               Logout
-             </DropdownMenuItem>
-           </DropdownMenuContent>
-          </DropdownMenu>
-         
-          ) : (
+            <UserDropdown user={user} />
+          )  : (
             <Link href="/auth/login" passHref>
               <Button
                 variant="outline"

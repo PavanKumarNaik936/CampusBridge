@@ -1,11 +1,11 @@
 'use client';
 
-import type { Metadata } from 'next'
+import {Toaster} from 'sonner'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { SessionProvider } from 'next-auth/react';
 const inter = Inter({ subsets: ['latin'] })
-
+import Navbar from '@/components/landing/Navbar';
 
 
 export default function RootLayout({
@@ -18,7 +18,9 @@ export default function RootLayout({
       <body className={inter.className}>
             
         <SessionProvider>
+          <Navbar/>
             {children}
+            <Toaster position="top-center" richColors />
         </SessionProvider>
         
         </body>

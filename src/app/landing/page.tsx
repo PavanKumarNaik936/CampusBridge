@@ -4,7 +4,7 @@ export default function LandingPage() {
   return (
     <main className="min-h-screen bg-[#F9FAFB] flex flex-col justify-between">
 
-      <Navbar/>
+     
       {/* Heo Section */}
       <section className="flex flex-col items-center justify-center py-20 px-4 text-center bg-[#14326E] text-white">
         <h1 className="text-5xl md:text-6xl font-extrabold mb-4 tracking-tight">CampusBridge</h1>
