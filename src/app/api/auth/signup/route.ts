@@ -23,7 +23,7 @@ export async function POST(req: Request) {
         email,
         password: hashedPassword,
         role,
-        isVerified: true, // Optional: mark as verified if not using email verification
+        // isVerified: true, // Optional: mark as verified if not using email verification
       },
     });
 
