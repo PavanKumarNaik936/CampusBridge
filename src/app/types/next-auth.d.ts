@@ -7,6 +7,8 @@ declare module 'next-auth' {
         email?: string | null;
         role: Role;
         isVerified: boolean;
+        image?: string | null;
+        profileImage?: string | null;
       };
     }
   
@@ -16,6 +18,8 @@ declare module 'next-auth' {
       email?: string | null;
       role: Role;
       isVerified: boolean;
+      image?: string | null;
+      profileImage?: string | null;
     }
   }
   
@@ -26,6 +30,8 @@ declare module 'next-auth' {
       email?: string | null;
       role: Role;
       isVerified: boolean;
+      image?: string | null;
+      profileImage?: string | null;
     }
   }
   

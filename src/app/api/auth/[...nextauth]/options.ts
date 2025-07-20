@@ -62,13 +62,17 @@ export const authOptions: NextAuthOptions = {
   ],
 
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user,account,profile }) {
       if (user) {
         token.id = user.id;
         token.name = user.name;
         token.email = user.email;
         token.role = user.role;
         token.isVerified = user.isVerified;
+
+      }
+      if (account && profile) {
+        token.image = (profile as any).picture; // Google gives picture
       }
       return token;
     },
@@ -80,6 +84,9 @@ export const authOptions: NextAuthOptions = {
         session.user.email = token.email;
         session.user.role = token.role as "student" | "admin" | "recruiter";
         session.user.isVerified = token.isVerified as boolean;
+        session.user.image = token.image as string;
+        session.user.profileImage = token.profileImage ?? null;
+        
       }
       return session;
     },
