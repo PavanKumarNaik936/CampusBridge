@@ -19,27 +19,40 @@ model User {
   email         String   @unique
   emailVerified DateTime?
   password      String?
-  image         String?
-  role          Role     @default(student) // ← ✅ Set default role here
+  image         String?  // OAuth image
+  role          Role     @default(student)
   isVerified    Boolean  @default(false)
   createdAt     DateTime @default(now())
 
-  // Optional Fields
-  profileImage  String?
+  // 🌐 Shared Fields (All Roles)
   phone         String?
+  profileImage  String?
+  linkedIn      String?
+  
+
+  // 🧑‍🎓 Student-Specific Fields
   branch        String?
   year          Int?
-  resumeUrl     String?
+  rollNumber    String? 
+  cgpa          Float?
+  skills        String[] @default([])
+  resumeUrl     String? // Can also be used for recruiter portfolio
+  portfolioUrl  String?
+  achievements  String[] @default([])
+
+  // 🧑‍💼 Recruiter-Specific Fields
   company       String?
   companyLogo   String?
 
-  // Relations
+  // 🔐 Admin-Specific Fields (if needed later)
+  // permissions String[] @default([])
+
+  // 🔗 Relations
   accounts      Account[]
   sessions      Session[]
   jobs          Job[]
   applications  Application[]
 }
-
 
 enum Role {
   student
@@ -47,26 +60,43 @@ enum Role {
   recruiter
 }
 
+
 model Job {
   id          String         @id @default(auto()) @map("_id") @db.ObjectId
   title       String
   description String
-  postedBy    User           @relation(fields: [postedById], references: [id])
+  location    String           // e.g., "Hyderabad", "Remote"
+  type        String           // e.g., "Internship", "Full-Time"
+  mode        String           // e.g., "Remote", "On-Site", "Hybrid"
+  salary      String?          // Optional — keep flexible
+  postedBy    User             @relation(fields: [postedById], references: [id])
   postedById  String
-  createdAt   DateTime       @default(now())
+  createdAt   DateTime         @default(now())
+  deadline DateTime?
 
-  // ✅ Inverse relation for Application
-  applications Application[] 
+  applications Application[]
 }
 
+
 model Application {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  user       User     @relation(fields: [userId], references: [id])
-  userId     String
-  job        Job      @relation(fields: [jobId], references: [id])
-  jobId      String
-  status     String
-  createdAt  DateTime @default(now())
+  id               String             @id @default(auto()) @map("_id") @db.ObjectId
+  user             User               @relation(fields: [userId], references: [id])
+  userId           String
+  job              Job                @relation(fields: [jobId], references: [id])
+  jobId            String
+  status           ApplicationStatus @default(pending)
+  resumeSnapshotUrl String?
+  coverLetter      String?
+  feedback         String?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+}
+
+enum ApplicationStatus {
+  pending
+  shortlisted
+  rejected
+  accepted
 }
 
 
