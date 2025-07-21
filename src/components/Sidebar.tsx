@@ -67,7 +67,21 @@ export default function Sidebar({ user }: { user: User }) {
         <nav className={clsx("mt-8 space-y-2", collapsed && "mt-4")}>
         <SidebarButton icon={<FaUser />} label="Overview" collapsed={collapsed} path="/profile" />
         <SidebarButton icon={<FaEdit />} label="Edit Profile" collapsed={collapsed} path="/profile/edit" />
-        <SidebarButton icon={<FaFileAlt />} label="Resume" collapsed={collapsed} path="/profile/resume" />
+        {(user?.role === "student") && (
+          <SidebarButton icon={<FaFileAlt />} label="Resume" collapsed={collapsed} path="/profile/resume" />
+        )}
+        <SidebarButton icon={<FaEdit />} label="My Bookmarks" collapsed={collapsed} path="/profile/bookmarks" />
+
+        {(user?.role === "student") && (
+          <SidebarButton icon={<FaFileAlt />} label="My Applications" collapsed={collapsed} path="/profile/applications" />
+ 
+        )}
+
+        {(user?.role === "admin" || user?.role === "recruiter") && (
+          <SidebarButton icon={<FaFileAlt />} label="Jobs" collapsed={collapsed} path="/profile/jobs" />
+ 
+        )}
+
 
         </nav>
 
