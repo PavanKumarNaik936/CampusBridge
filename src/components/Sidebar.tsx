@@ -22,7 +22,7 @@ export default function Sidebar({ user }: { user: User }) {
         >
           <div className="bg-white p-4 rounded-lg shadow-lg">
             <img
-              src={user.image ?? "/default-user.png"}
+              src={user.profileImage|| user.image || "/default-user.png"}
               alt="Zoomed Profile"
               className="h-64 w-64 rounded-full border-4 border-[#14326E] object-cover"
             />
@@ -50,7 +50,7 @@ export default function Sidebar({ user }: { user: User }) {
         {/* Profile Section */}
         <div className="flex flex-col items-center space-y-3">
           <img
-            src={user.image ?? "/default-user.png"}
+            src={user.profileImage||user.image || "/default-user.jpg"}
             alt="Profile"
             onClick={() => setImageZoom(true)}
             className="h-20 w-20 rounded-full border-4 border-[#14326E] shadow-sm object-cover cursor-pointer hover:scale-105 transition duration-200"
@@ -74,7 +74,7 @@ export default function Sidebar({ user }: { user: User }) {
         {/* Logout */}
         <div className="mt-auto pt-4 border-t">
           <button
-            onClick={() => signOut()}
+            onClick={() => signOut({ callbackUrl: '/' })}
             className="w-full flex items-center gap-3 px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 rounded transition"
           >
             <FaSignOutAlt />

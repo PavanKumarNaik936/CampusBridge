@@ -78,7 +78,7 @@ export default function UserDropdown({ user }: UserDropdownProps) {
             View
           </button>
           <button
-            onClick={() => router.push("/profile")}
+            onClick={() => router.push("/profile/edit")}
             className="flex-1 text-sm px-4 py-2 rounded-lg border border-[#14326E] text-[#14326E] hover:bg-[#f0f4ff] transition"
           >
             Edit
@@ -90,7 +90,7 @@ export default function UserDropdown({ user }: UserDropdownProps) {
         {/* Logout Button */}
         <div className="flex justify-center">
           <button
-            onClick={() => signOut()}
+            onClick={() => signOut({ callbackUrl: '/' })}
             className="w-full text-sm px-4 py-2 rounded-lg border border-red-500 text-red-600 hover:bg-red-50 transition font-semibold"
           >
             Logout

@@ -17,7 +17,7 @@ export default function Navbar() {
   const { data: session, status } = useSession();
   const user = session?.user;
 
-  if (!user) return null; 
+  
 
   const router = useRouter();
 
@@ -52,7 +52,7 @@ export default function Navbar() {
           </NavigationMenu>
 
           {/* Auth Section */}
-          {status === "authenticated" ? (
+          {status === "authenticated" && user ? (
             <UserDropdown user={user} />
           )  : (
             <Link href="/auth/login" passHref>
