@@ -18,7 +18,7 @@ export async function GET() {
       },
       include: {
         job: true,
-        // event: true,
+        event: true,
         // material: true,
       },
     });

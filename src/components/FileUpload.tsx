@@ -49,3 +49,22 @@ export function ResumeUpload({
     );
   }
   
+  export function EventImageUpload({
+    onUpload,
+  }: {
+    onUpload: (url: string, fileName: string) => void;
+  }) {
+    return (
+      <UploadDropzone<OurFileRouter, "eventImageUploader">
+        endpoint="eventImageUploader"
+        onClientUploadComplete={(res) => {
+          const url = res?.[0]?.url || res?.[0]?.ufsUrl; // adjust depending on UploadThing version
+          const name = res?.[0]?.name;
+          if (url && name) onUpload(url, name);
+        }}
+        onUploadError={(error) => {
+          alert("Upload failed: " + error.message);
+        }}
+      />
+    );
+  }

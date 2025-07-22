@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { User } from "@/generated/prisma";
-import { FaUser, FaEdit, FaFileAlt, FaBars, FaSignOutAlt } from "react-icons/fa";
+import { FaUser, FaEdit, FaFileAlt, FaBars, FaSignOutAlt,FaCalendarAlt } from "react-icons/fa";
 import { signOut } from "next-auth/react";
 import clsx from "clsx";
 import { useRouter } from "next/navigation";
+
 
 export default function Sidebar({ user }: { user: User }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -74,6 +75,15 @@ export default function Sidebar({ user }: { user: User }) {
 
         {(user?.role === "student") && (
           <SidebarButton icon={<FaFileAlt />} label="My Applications" collapsed={collapsed} path="/profile/applications" />
+ 
+        )}
+        {(user?.role === "admin") && (
+          <SidebarButton icon={<FaCalendarAlt />} label="Events" collapsed={collapsed} path="/profile/events" />
+ 
+        )}
+
+        {(user?.role === "student") && (
+          <SidebarButton icon={<FaCalendarAlt />} label="Events" collapsed={collapsed} path="/profile/events/registered" />
  
         )}
 
