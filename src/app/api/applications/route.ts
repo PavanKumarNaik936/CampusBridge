@@ -53,23 +53,27 @@ export async function POST(req: Request) {
 }
 
 // GET: Get all applications of the current user
-export async function GET(req: Request) {
-  try {
-    const user = await getSessionUser();
-    if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-    }
+export async function GET() {
+  const user = await getSessionUser();
 
-    
+  if (!user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
     const applications = await prisma.application.findMany({
-      where: { userId:user.id },
+      where: { userId: user.id },
       include: {
-        job: true,
+        job: true, // include job details
+      },
+      orderBy: {
+        createdAt: "desc",
       },
     });
 
     return NextResponse.json(applications);
   } catch (error) {
+    console.error("Error fetching applications:", error);
     return NextResponse.json({ error: "Failed to fetch applications" }, { status: 500 });
   }
 }

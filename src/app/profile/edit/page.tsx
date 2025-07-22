@@ -6,6 +6,7 @@ import { usePathname,useRouter } from "next/navigation";
 import { toast, Toaster } from "sonner";
 import axios from "axios";
 import { User } from "@/generated/prisma";
+import { ProfileImageUpload, ResumeUpload } from "@/components/FileUpload";
 
 
 
@@ -17,13 +18,18 @@ export default function EditProfilePage() {
 
   const prevPathRef = useRef(pathname);
 
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  
   const [form, setForm] = useState<Partial<User>>({});
   const [loading, setLoading] = useState(false);
   const [dbUser, setDbUser] = useState<Partial<User> | null>(null);
   const [skills, setSkills] = useState<string[]>(form.skills || []);
   const [achievements, setAchievements] = useState<string[]>(form.achievements || []);
-  const [resumeFile, setResumeFile] = useState<File | null>(null);
+  
+
+  const [resumeFileName, setResumeFileName] = useState<string | null>(null);
+  const [profileFileName, setProfileFileName] = useState<string | null>(null);
+
+
   const [isDirty, setIsDirty] = useState(false);
 
 
@@ -42,48 +48,42 @@ export default function EditProfilePage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
-    setIsDirty(true); 
+    setForm(prev => ({
+      ...prev,
+      [name]: value === "" ? undefined : value, // 👈 convert empty to undefined
+    }));
+    setIsDirty(true);
   };
+  
+  function cleanUndefinedAndNull<T extends object>(obj: T): Partial<T> {
+    const cleaned: Partial<T> = {};
+    for (const key in obj) {
+      const value = obj[key];
+      if (value !== null && value !== "" && value !== undefined) {
+        cleaned[key] = value;
+      }
+    }
+    return cleaned;
+  }
+  
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setPreviewImage(reader.result as string);
-      setForm((prev) => ({ ...prev, profileImage: reader.result as string }));
-    };
-    reader.readAsDataURL(file);
-    setIsDirty(true); 
-  };
-  const handleResumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-  
-    setResumeFile(file);
-  
-    // Optional: Convert to base64 or upload to a cloud storage (if needed)
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setForm((prev) => ({ ...prev, resumeUrl: reader.result as string }));
-    };
-    reader.readAsDataURL(file); // ⚠️ optional – only if you're storing base64
-    setIsDirty(true); 
-  };
-  
   
 
   const handleSubmit = async () => {
     if (!dbUser?.id) return toast.error("User ID is missing");
     setLoading(true);
+    const rawPayload: Partial<User> = {
+      ...form,
+      skills: skills.length > 0 ? skills : undefined,
+      achievements: achievements.length > 0 ? achievements : undefined,
+    };
+  
+    const cleanedPayload = cleanUndefinedAndNull(rawPayload); // 👈 removes all undefined, "", null
+  
+    
     try {
-        await axios.put(`/api/users/${dbUser.id}`, {
-            ...form,
-            skills,
-            achievements,
-          });
-          
+        await axios.put(`/api/users/${dbUser.id}`, cleanedPayload);
+        // console.log(cleanedPayload)
       toast.success("Profile updated successfully");
       setIsDirty(false);
       router.push("/profile");
@@ -125,7 +125,7 @@ export default function EditProfilePage() {
   
 
   if (status === "loading") return <div className="p-6">Loading session...</div>;
-  if (!sessionUser?.email) return <div className="p-4">Not authorized</div>;
+  // if (!sessionUser?.email) return <div className="p-4">Not authorized</div>;
   if (!dbUser) return <div className="p-4">Loading user data...</div>;
 
   return (
@@ -133,67 +133,59 @@ export default function EditProfilePage() {
       <Toaster richColors position="top-center" />
       <div className="bg-white shadow-lg rounded-xl p-8">
         <h1 className="text-2xl md:text-3xl font-bold text-[#14326E] mb-6">Edit Your Profile</h1>
-        <div className="flex flex-col md:flex-row items-center gap-6 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-6 mb-6 w-full">
+          {/* Profile Image + Upload */}
+          <div className="flex flex-col items-center sm:items-start gap-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Profile Image</label>
+            <img
+              src={form.profileImage || dbUser?.image || "/default-user.jpg"}
+              alt="Profile"
+              className="w-24 h-24 object-cover rounded-full border"
+            />
+            <ProfileImageUpload
+              onUpload={(url, fileName) => {
+                setForm((prev) => {
+                  const updated = { ...prev, profileImage: url };
+                  // console.log("✅ Updated form:", updated); // ✅ Correct place to log
+                  return updated;
+                });
+                console.log(form);
+                setProfileFileName(fileName);
+                setIsDirty(true);
+              }}
+              
+            />
 
-                <div className="flex items-center gap-6 mb-6">
-                {/* Left: Image */}
-                <div>
-                    <label htmlFor="profileImage" className="block text-sm font-medium text-gray-700 mb-2">Profile Image</label>
-                    <img
-                    src={
-                        previewImage ||
-                        form.profileImage ||
-                        dbUser?.image || // fallback to auth image
-                        "/default-avatar.png" // 🔁 your fallback default image path
-                    }
-                    alt="Profile"
-                    className="w-32 h-32 object-cover rounded-full border"
-                    />
-                    {previewImage && <p className="text-sm text-gray-600 mt-1">Image selected</p>}
+            {profileFileName && (
+              <p className="text-sm text-gray-600 mt-1">{profileFileName}</p>
+            )}
+          </div>
 
-                </div>
-        </div>
-
-
-        {/* Right: File Input */}
-        <div className="flex flex-col justify-center">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Upload New</label>
-            <input type="file" accept="image/*" onChange={handleFileChange} />
-        </div>
-        </div>
-
-                        {/* Resume Upload Section */}
-                        <div className="flex flex-col md:flex-row items-center gap-6 mb-6">
-        <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-            Resume
-            </label>
+          {/* Resume Upload */}
+          <div className="flex flex-col items-center sm:items-start gap-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Resume</label>
             {form.resumeUrl && (
-            <a
+              <a
                 href={form.resumeUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-600 underline mb-2 block text-sm"
-            >
+                className="text-blue-600 underline mb-2 text-sm"
+              >
                 View Uploaded Resume
-            </a>
+              </a>
             )}
-        </div>
-
-        <div className="flex flex-col justify-center">
-            <label htmlFor="resume" className="block text-sm font-medium text-gray-700 mb-2">
-            Upload Resume (PDF)
-            </label>
-            <input
-            id="resume"
-            type="file"
-            accept=".pdf"
-            onChange={handleResumeChange}
+            <ResumeUpload
+              onUpload={(url, fileName) => {
+                // console.log(url);
+                setForm((prev) => ({ ...prev, resumeUrl: url }));
+                setResumeFileName(fileName);
+                setIsDirty(true);
+              }}
             />
-            {resumeFile && (
-            <p className="text-sm text-gray-600 mt-1">{resumeFile.name}</p>
+            {resumeFileName && (
+              <p className="text-sm text-gray-600 mt-1">{resumeFileName}</p>
             )}
-        </div>
+          </div>
         </div>
 
 

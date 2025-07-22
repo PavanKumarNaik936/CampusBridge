@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { User } from "@/generated/prisma";
-import { FaUser, FaEdit, FaFileAlt, FaBars, FaSignOutAlt } from "react-icons/fa";
+import { FaUser, FaEdit, FaFileAlt, FaBars, FaSignOutAlt,FaCalendarAlt } from "react-icons/fa";
 import { signOut } from "next-auth/react";
 import clsx from "clsx";
 import { useRouter } from "next/navigation";
+
 
 export default function Sidebar({ user }: { user: User }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -22,7 +23,7 @@ export default function Sidebar({ user }: { user: User }) {
         >
           <div className="bg-white p-4 rounded-lg shadow-lg">
             <img
-              src={user.image ?? "/default-user.png"}
+              src={user.profileImage|| user.image || "/default-user.png"}
               alt="Zoomed Profile"
               className="h-64 w-64 rounded-full border-4 border-[#14326E] object-cover"
             />
@@ -50,7 +51,7 @@ export default function Sidebar({ user }: { user: User }) {
         {/* Profile Section */}
         <div className="flex flex-col items-center space-y-3">
           <img
-            src={user.image ?? "/default-user.png"}
+            src={user.profileImage||user.image || "/default-user.jpg"}
             alt="Profile"
             onClick={() => setImageZoom(true)}
             className="h-20 w-20 rounded-full border-4 border-[#14326E] shadow-sm object-cover cursor-pointer hover:scale-105 transition duration-200"
@@ -67,14 +68,37 @@ export default function Sidebar({ user }: { user: User }) {
         <nav className={clsx("mt-8 space-y-2", collapsed && "mt-4")}>
         <SidebarButton icon={<FaUser />} label="Overview" collapsed={collapsed} path="/profile" />
         <SidebarButton icon={<FaEdit />} label="Edit Profile" collapsed={collapsed} path="/profile/edit" />
-        <SidebarButton icon={<FaFileAlt />} label="Resume" collapsed={collapsed} path="/profile/resume" />
+        {(user?.role === "student") && (
+          <SidebarButton icon={<FaFileAlt />} label="Resume" collapsed={collapsed} path="/profile/resume" />
+        )}
+        <SidebarButton icon={<FaEdit />} label="My Bookmarks" collapsed={collapsed} path="/profile/bookmarks" />
+
+        {(user?.role === "student") && (
+          <SidebarButton icon={<FaFileAlt />} label="My Applications" collapsed={collapsed} path="/profile/applications" />
+ 
+        )}
+        {(user?.role === "admin") && (
+          <SidebarButton icon={<FaCalendarAlt />} label="Events" collapsed={collapsed} path="/profile/events" />
+ 
+        )}
+
+        {(user?.role === "student") && (
+          <SidebarButton icon={<FaCalendarAlt />} label="Events" collapsed={collapsed} path="/profile/events/registered" />
+ 
+        )}
+
+        {(user?.role === "admin" || user?.role === "recruiter") && (
+          <SidebarButton icon={<FaFileAlt />} label="Jobs" collapsed={collapsed} path="/profile/jobs" />
+ 
+        )}
+
 
         </nav>
 
         {/* Logout */}
         <div className="mt-auto pt-4 border-t">
           <button
-            onClick={() => signOut()}
+            onClick={() => signOut({ callbackUrl: '/' })}
             className="w-full flex items-center gap-3 px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 rounded transition"
           >
             <FaSignOutAlt />

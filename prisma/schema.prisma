@@ -52,6 +52,8 @@ model User {
   sessions      Session[]
   jobs          Job[]
   applications  Application[]
+  bookmarks Bookmark[] 
+  events Event[]  @relation("CreatedEvents")
 }
 
 enum Role {
@@ -73,7 +75,7 @@ model Job {
   postedById  String
   createdAt   DateTime         @default(now())
   deadline DateTime?
-
+  bookmarks   Bookmark[]
   applications Application[]
 }
 
@@ -98,6 +100,53 @@ enum ApplicationStatus {
   rejected
   accepted
 }
+model Bookmark {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  user       User     @relation(fields: [userId], references: [id])
+  userId     String   @db.ObjectId
+
+  jobId      String?  @db.ObjectId
+  job        Job?     @relation(fields: [jobId], references: [id])
+
+  eventId    String?  @db.ObjectId
+  event      Event?   @relation(fields: [eventId], references: [id])
+
+  //materialId String?  @db.ObjectId
+  //material   Material?@relation(fields: [materialId], references: [id])
+
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, jobId])
+  //@@unique([userId, eventId])
+  //@@unique([userId, materialId])
+}
+
+
+model Event {
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  title            String
+  description      String
+  imageUrl         String?
+  type             String   // workshop | webinar | seminar | hackathon
+  startDate        DateTime
+  endDate          DateTime
+  venue            String
+  createdById      String
+  createdBy        User     @relation("CreatedEvents", fields: [createdById], references: [id])
+
+  attendees        String[] // userIds
+  attended         String[] // userIds who checked in
+  maxAttendees     Int?
+  status           String   // upcoming | completed | cancelled
+  isOnline         Boolean  @default(false)
+  meetLink         String?
+  registrationLink String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  bookmarks   Bookmark[]
+}
+
 
 
 model Account {

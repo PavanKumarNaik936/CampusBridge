@@ -23,11 +23,31 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
     try {
       const json = await req.json();
-      const parsed = userSchema.partial().safeParse(json);
+      // Handle string input safely
+      if (typeof json.year === "string") {
+        json.year = json.year.trim() === "" ? undefined : parseInt(json.year);
+      }
+      if (typeof json.cgpa === "string") {
+        json.cgpa = json.cgpa.trim() === "" ? undefined : parseFloat(json.cgpa);
+      }
+     
+  
+
+      const parsed = userSchema.partial().strip().safeParse(json);
+
   
       if (!parsed.success) {
-        return NextResponse.json({ error: parsed.error.issues }, { status: 400 });
+        console.error("Validation Errors:", parsed.error.format());
+      
+        // Create a list of errors with field names and messages
+        const errorDetails = parsed.error.issues.map(issue => ({
+          field: issue.path.join("."),
+          message: issue.message,
+        }));
+      
+        return NextResponse.json({ error: "Invalid input", details: errorDetails }, { status: 400 });
       }
+      
 
       if (parsed.data.password) {
         parsed.data.password = await bcrypt.hash(parsed.data.password, 10);

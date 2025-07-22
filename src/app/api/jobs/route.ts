@@ -3,9 +3,18 @@ import { prisma } from "@/lib/prisma";
 import { jobSchema } from "@/lib/validations/jobSchema";
 import { getSessionUser } from "@/lib/getSessionUser";
 // GET: Fetch all jobs
-export async function GET() {
+export async function GET(req:Request) {
+  const { searchParams } = new URL(req.url);
+  const location = searchParams.get("location");
+  const type = searchParams.get("type");
+  const mode = searchParams.get("mode");
   try {
     const jobs = await prisma.job.findMany({
+      where: {
+        ...(location && { location }),
+        ...(type && { type }),
+        ...(mode && { mode }),
+      },
       include: {
         postedBy: {
           select: {
