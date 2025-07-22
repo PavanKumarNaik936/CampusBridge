@@ -33,7 +33,7 @@ export default function Navbar() {
           {/* Navigation Links */}
           <NavigationMenu>
             <NavigationMenuList className="gap-3">
-              {["jobs", "events", "contact"].map((item) => (
+              {["jobs", "resources","events", "contact"].map((item) => (
                 <NavigationMenuItem key={item}>
                   <Link href={`/${item}`} passHref legacyBehavior>
                     <NavigationMenuLink asChild>

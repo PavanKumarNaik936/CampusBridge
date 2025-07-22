@@ -68,3 +68,20 @@ export function ResumeUpload({
       />
     );
   }
+
+  export function PdfUpload({ onUpload }: { onUpload: (url: string, fileName: string) => void }) {
+    return (
+      <UploadDropzone<OurFileRouter, "pdfUploader">
+        endpoint="pdfUploader"
+        onClientUploadComplete={(res) => {
+          const url = res?.[0]?.url || res?.[0]?.ufsUrl;
+          const name = res?.[0]?.name;
+          if (url && name) onUpload(url, name);
+        }}
+        onUploadError={(error) => {
+          alert("Upload failed: " + error.message);
+        }}
+      />
+    );
+  }
+  

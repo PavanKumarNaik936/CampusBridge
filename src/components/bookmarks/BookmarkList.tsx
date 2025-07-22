@@ -1,6 +1,5 @@
-// components/bookmarks/BookmarkList.tsx
-
 "use client";
+
 import { useEffect, useState } from "react";
 import axios from "axios";
 import BookmarkItem from "./BookmarkItem";
@@ -14,7 +13,20 @@ export default function BookmarkList() {
     const fetchBookmarks = async () => {
       try {
         const { data } = await axios.get("/api/bookmarks");
-        setBookmarks(data);
+
+        if (data && typeof data === "object") {
+          const combined = [
+            ...(data.jobs || []).map((job: any) => ({ type: "Job", ...job })),
+            ...(data.events || []).map((event: any) => ({ type: "Event", ...event })),
+            ...(data.resources || []).map((resource: any) => ({
+              type: "Resource",
+              ...resource,
+            })),
+          ];
+          setBookmarks(combined);
+        } else {
+          setBookmarks([]);
+        }
       } catch (err) {
         console.error("Failed to fetch bookmarks");
       }
@@ -23,17 +35,14 @@ export default function BookmarkList() {
     fetchBookmarks();
   }, []);
 
-  // console.log(bookmarks);
-
+  // 🔎 Filtering logic
   const filtered = bookmarks.filter((b) => {
     if (filter === "All") return true;
-    if (filter === "Job") return b.job;
-    if (filter === "Event") return b.event;
-    if (filter === "Material") return b.material;
+    return b.type === filter;
   });
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="max-w-3xl mx-auto px-4">
       <h2 className="text-2xl font-bold mb-4">🔖 My Bookmarks</h2>
       <BookmarkFilter selected={filter} onSelect={setFilter} />
       {filtered.length === 0 ? (
