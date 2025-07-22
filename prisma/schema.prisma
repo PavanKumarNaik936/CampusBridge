@@ -52,8 +52,11 @@ model User {
   sessions      Session[]
   jobs          Job[]
   applications  Application[]
-  bookmarks Bookmark[] 
+  jobBookmarks       JobBookmark[]
+  eventBookmarks     EventBookmark[]
+  resourceBookmarks  ResourceBookmark[]
   events Event[]  @relation("CreatedEvents")
+  resources Resource[]
 }
 
 enum Role {
@@ -75,7 +78,7 @@ model Job {
   postedById  String
   createdAt   DateTime         @default(now())
   deadline DateTime?
-  bookmarks   Bookmark[]
+  bookmarks   JobBookmark[] 
   applications Application[]
 }
 
@@ -100,26 +103,39 @@ enum ApplicationStatus {
   rejected
   accepted
 }
-model Bookmark {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  user       User     @relation(fields: [userId], references: [id])
-  userId     String   @db.ObjectId
-
-  jobId      String?  @db.ObjectId
-  job        Job?     @relation(fields: [jobId], references: [id])
-
-  eventId    String?  @db.ObjectId
-  event      Event?   @relation(fields: [eventId], references: [id])
-
-  //materialId String?  @db.ObjectId
-  //material   Material?@relation(fields: [materialId], references: [id])
-
-  createdAt  DateTime @default(now())
+model JobBookmark {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String   @db.ObjectId
+  job       Job      @relation(fields: [jobId], references: [id])
+  jobId     String   @db.ObjectId
+  createdAt DateTime @default(now())
 
   @@unique([userId, jobId])
-  //@@unique([userId, eventId])
-  //@@unique([userId, materialId])
 }
+
+model EventBookmark {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String   @db.ObjectId
+  event     Event    @relation(fields: [eventId], references: [id])
+  eventId   String   @db.ObjectId
+  createdAt DateTime @default(now())
+
+  @@unique([userId, eventId])
+}
+
+model ResourceBookmark {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String   @db.ObjectId
+  resource    Resource @relation(fields: [resourceId], references: [id])
+  resourceId  String   @db.ObjectId
+  createdAt   DateTime @default(now())
+
+  @@unique([userId, resourceId])
+}
+
 
 
 model Event {
@@ -144,8 +160,43 @@ model Event {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  bookmarks   Bookmark[]
+  bookmarks   EventBookmark[]  
 }
+
+model Category {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String   @unique
+  createdBy String?  // Optional: admin user ID
+  createdAt DateTime @default(now())
+  resources Resource[]
+}
+enum ResourceType {
+  PDF
+  MCQ
+  LINK
+}
+
+model Resource {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  description String?
+  type        ResourceType
+  url         String?
+  fileUrl     String?
+  createdAt   DateTime @default(now())
+  isPublic    Boolean  @default(true)
+
+  // Foreign Keys
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  createdById String
+
+  category Category @relation(fields: [categoryId], references: [id])
+
+  categoryId  String
+  bookmarks   ResourceBookmark[] 
+}
+
+
 
 
 

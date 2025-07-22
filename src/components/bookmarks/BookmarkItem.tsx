@@ -1,4 +1,3 @@
-// components/bookmarks/BookmarkItem.tsx
 "use client";
 
 import React from "react";
@@ -9,17 +8,17 @@ export default function BookmarkItem({ bookmark }: { bookmark: any }) {
     ? "Job"
     : bookmark.event
     ? "Event"
-    : bookmark.material
-    ? "Material"
+    : bookmark.resource
+    ? "Resource"
     : "Unknown";
 
   const title =
-    bookmark.job?.title || bookmark.event?.title || bookmark.material?.title;
+    bookmark.job?.title || bookmark.event?.title || bookmark.resource?.title;
 
   const description =
     bookmark.job?.description ||
     bookmark.event?.description ||
-    bookmark.material?.description;
+    bookmark.resource?.description;
 
   // Construct proper link based on available content
   const detailLink =
@@ -27,8 +26,8 @@ export default function BookmarkItem({ bookmark }: { bookmark: any }) {
       ? `/jobs?highlight=${bookmark.job.id}`
       : bookmark.event
       ? `/events?highlight=${bookmark.event.id}`
-      : bookmark.material
-      ? `/materials?highlight=${bookmark.material.id}`
+      : bookmark.resource
+      ? `/resources?highlight=${bookmark.resource.id}`
       : "#";
 
   return (

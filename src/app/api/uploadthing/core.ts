@@ -16,6 +16,10 @@ export const ourFileRouter = {
     .onUploadComplete(({ file }) => {
       console.log("Event image uploaded:", file.url);
     }),
+    pdfUploader: f({ pdf: { maxFileSize: "4MB" } })
+    .onUploadComplete(({ file }) => {
+      console.log("Pdf uploaded:", file.url);
+    })
 } satisfies FileRouter;
 
 

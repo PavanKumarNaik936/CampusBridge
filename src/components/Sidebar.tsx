@@ -81,6 +81,10 @@ export default function Sidebar({ user }: { user: User }) {
           <SidebarButton icon={<FaCalendarAlt />} label="Events" collapsed={collapsed} path="/profile/events" />
  
         )}
+        {(user?.role === "admin") && (
+          <SidebarButton icon={<FaCalendarAlt />} label="Resources" collapsed={collapsed} path="/profile/admin/resources" />
+ 
+        )}
 
         {(user?.role === "student") && (
           <SidebarButton icon={<FaCalendarAlt />} label="Events" collapsed={collapsed} path="/profile/events/registered" />
