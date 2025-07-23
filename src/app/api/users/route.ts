@@ -30,8 +30,12 @@ export async function GET() {
             portfolioUrl: true,
             achievements: true,
         
-            company: true,
-            companyLogo: true,
+            company: {
+              select: {
+                name: true,
+                logo: true, // 👈 assuming "logo" exists on your Company model
+              },
+            },
         
             // Relations
             accounts: true,
@@ -51,7 +55,7 @@ export async function GET() {
 export async function POST(req: Request) {
     try {
       const body = await req.json();
-      console.log(body);
+      // console.log(body);
   
       // ✅ Validate the body using Zod
       const parsedData = userSchema.parse(body);
@@ -63,7 +67,14 @@ export async function POST(req: Request) {
       }
 
       // ✅ Proceed to create user if validation passes
-      const newUser = await prisma.user.create({ data: parsedData });
+      const { companyId, ...rest } = parsedData;
+
+      const newUser = await prisma.user.create({
+        data: {
+          ...rest,
+          ...(companyId && { company: { connect: { id: companyId } } }),
+        },
+      });
   
       // ✅ Remove password before sending response
     const { password, ...userWithoutPassword } = newUser;

@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
-import { toast } from "sonner"; // 👈 import Sonner toast
+import { toast } from "sonner";
 import {
   FaBriefcase,
   FaMapMarkerAlt,
@@ -12,15 +12,25 @@ import {
   FaCalendarAlt,
   FaMoneyBillWave,
   FaFileAlt,
-  FaSpinner
+  FaSpinner,
+  FaBuilding,
 } from "react-icons/fa";
+
+interface Company {
+  id: string;
+  name: string;
+}
 
 export default function PostJob() {
   const { data: session } = useSession();
   const router = useRouter();
+
+  const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(false);
+  const [companyLoading, setCompanyLoading] = useState(true);
 
   const [form, setForm] = useState({
+    companyId: "",
     title: "",
     description: "",
     location: "",
@@ -32,6 +42,27 @@ export default function PostJob() {
 
   const userRole = session?.user?.role;
   const allowed = userRole === "admin" || userRole === "recruiter";
+
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      try {
+        const { data } = await axios.get("/api/companies");
+        if (!data || data.length === 0) {
+          toast.info("No companies found. Please create one first.");
+          router.push("/create-company");
+        } else {
+          setCompanies(data);
+          setForm((prev) => ({ ...prev, companyId: data[0].id }));
+        }
+      } catch (err) {
+        toast.error("Failed to load companies");
+      } finally {
+        setCompanyLoading(false);
+      }
+    };
+
+    fetchCompanies();
+  }, [router]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -48,13 +79,11 @@ export default function PostJob() {
       toast.success("🎉 Job posted successfully!");
       router.push("/profile/jobs");
     } catch (err: any) {
-      console.log(err);
       toast.error(err?.response?.data?.error || "Failed to post job.");
     } finally {
       setLoading(false);
     }
   };
-  
 
   if (!allowed)
     return (
@@ -65,6 +94,14 @@ export default function PostJob() {
       </div>
     );
 
+  if (companyLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen text-lg text-gray-600">
+        <FaSpinner className="animate-spin mr-2" /> Loading companies...
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-lg p-8">
@@ -73,6 +110,28 @@ export default function PostJob() {
         </h1>
 
         <form onSubmit={handleSubmit} className="grid gap-6">
+
+          {/* Company Selector */}
+          <div>
+            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 uppercase mb-1">
+              <FaBuilding /> Select Company
+            </label>
+            <select
+              name="companyId"
+              value={form.companyId}
+              onChange={handleChange}
+              required
+              className="w-full px-4 py-2 border border-gray-300 rounded-xl bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+            >
+              {companies.map((company) => (
+                <option key={company.id} value={company.id}>
+                  {company.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Title */}
           <div>
             <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 uppercase mb-1">
               <FaBriefcase /> Job Title
@@ -83,11 +142,12 @@ export default function PostJob() {
               value={form.title}
               onChange={handleChange}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
               placeholder="e.g., Frontend Developer"
+              className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
             />
           </div>
 
+          {/* Description */}
           <div>
             <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 uppercase mb-1">
               <FaFileAlt /> Job Description
@@ -98,11 +158,12 @@ export default function PostJob() {
               onChange={handleChange}
               rows={5}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none resize-none"
               placeholder="Describe the role, responsibilities, and qualifications..."
+              className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none resize-none"
             />
           </div>
 
+          {/* Location, Type, Mode */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 uppercase mb-1">
@@ -114,8 +175,8 @@ export default function PostJob() {
                 value={form.location}
                 onChange={handleChange}
                 required
+                placeholder="e.g., Bengaluru"
                 className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
-                placeholder="e.g., Hyderabad or Remote"
               />
             </div>
 
@@ -153,6 +214,7 @@ export default function PostJob() {
             </div>
           </div>
 
+          {/* Salary & Deadline */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 uppercase mb-1">
@@ -163,8 +225,8 @@ export default function PostJob() {
                 name="salary"
                 value={form.salary}
                 onChange={handleChange}
+                placeholder="e.g., 5LPA"
                 className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
-                placeholder="e.g., ₹30,000/month"
               />
             </div>
 
@@ -182,25 +244,25 @@ export default function PostJob() {
             </div>
           </div>
 
+          {/* Submit Button */}
           <div className="flex justify-end">
             <button
-                type="submit"
-                disabled={loading}
-                className={`flex items-center gap-2 justify-center bg-blue-600 hover:bg-blue-700 transition-all text-white font-semibold py-2 px-6 rounded-xl shadow-md ${
-                    loading ? "opacity-60 cursor-not-allowed" : ""
-                }`}
-                >
-                {loading ? (
-                    <>
-                    <FaSpinner className="animate-spin" /> Posting...
-                    </>
-                ) : (
-                    <>
-                    ➕ Post Job
-                    </>
-                )}
-                </button>
-
+              type="submit"
+              disabled={loading}
+              className={`flex items-center gap-2 justify-center bg-blue-600 hover:bg-blue-700 transition-all text-white font-semibold py-2 px-6 rounded-xl shadow-md ${
+                loading ? "opacity-60 cursor-not-allowed" : ""
+              }`}
+            >
+              {loading ? (
+                <>
+                  <FaSpinner className="animate-spin" /> Posting...
+                </>
+              ) : (
+                <>
+                  ➕ Post Job
+                </>
+              )}
+            </button>
           </div>
         </form>
       </div>

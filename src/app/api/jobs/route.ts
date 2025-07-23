@@ -3,40 +3,84 @@ import { prisma } from "@/lib/prisma";
 import { jobSchema } from "@/lib/validations/jobSchema";
 import { getSessionUser } from "@/lib/getSessionUser";
 // GET: Fetch all jobs
-export async function GET(req:Request) {
+
+export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const location = searchParams.get("location");
   const type = searchParams.get("type");
   const mode = searchParams.get("mode");
+
   try {
+    // const jobs = await prisma.job.findMany({
+    //   where: {
+    //     ...(location ? { location } : {}),
+    //     ...(type ? { type } : {}),
+    //     ...(mode ? { mode } : {}),
+    //   },
+    //   include: {
+    //     postedBy: {
+    //       select: {
+    //         id: true,
+    //         name: true,
+    //         role: true,
+    //         profileImage: true,
+    //       },
+    //       include: {
+    //         company: {
+    //           select: {
+    //             name: true,
+    //             logo: true,
+    //           },
+    //         },
+    //       },
+    //     },
+    //     _count: {
+    //       select: { applications: true },
+    //     },
+    //   },
+    //   orderBy: {
+    //     createdAt: "desc",
+    //   },
+    // });
+    
     const jobs = await prisma.job.findMany({
       where: {
-        ...(location && { location }),
-        ...(type && { type }),
-        ...(mode && { mode }),
+        ...(location ? { location } : {}),
+        ...(type ? { type } : {}),
+        ...(mode ? { mode } : {}),
       },
       include: {
+        company: {
+          select: {
+            name: true,
+            logo: true, // Optional: include logo if needed
+          },
+        },
         postedBy: {
           select: {
             id: true,
             name: true,
             role: true,
-            company: true,
             profileImage: true,
-          }
+          },
         },
         _count: {
-          select: { applications: true }
-        }
+          select: { applications: true },
+        },
       },
       orderBy: {
-        createdAt: "desc"
-      }
+        createdAt: "desc",
+      },
     });
+    
 
     return NextResponse.json(jobs);
   } catch (error) {
-    return NextResponse.json({ error: "Failed to fetch jobs" }, { status: 500 });
+    console.error("❌ Error fetching jobs:", error); // 👈 helpful log
+    return NextResponse.json(
+      { error: "Failed to fetch jobs", details: error instanceof Error ? error.message : error },
+      { status: 500 }
+    );
   }
 }
 
@@ -64,7 +108,7 @@ export async function POST(req: Request) {
       
         return NextResponse.json({ error: formattedErrors }, { status: 400 });
       }
-  
+      // console.log(parsed.data)
       const newJob = await prisma.job.create({
         data: {
           ...parsed.data,

@@ -1,17 +1,18 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-export async function GET(req: Request, { params }: { params: { userId: string } }) {
+export async function GET(req: Request, { params }: { params: { id: string } }) {
   try {
     const jobs = await prisma.job.findMany({
       where: {
-        postedById: params.userId,
+        postedById: params.id,
       },
       orderBy: {
         createdAt: "desc",
       },
       include: {
         applications: true, // optional: include application count/details
+        company:true,
       },
     });
 

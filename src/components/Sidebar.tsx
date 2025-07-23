@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { User } from "@/generated/prisma";
-import { FaUser, FaEdit, FaFileAlt, FaBars, FaSignOutAlt,FaCalendarAlt } from "react-icons/fa";
+import { FaUser, FaEdit, FaFileAlt, FaBars, FaSignOutAlt,FaCalendarAlt,FaChartBar,FaChartLine,FaProjectDiagram,FaUserEdit } from "react-icons/fa";
 import { signOut } from "next-auth/react";
 import clsx from "clsx";
 import { useRouter } from "next/navigation";
@@ -67,7 +67,7 @@ export default function Sidebar({ user }: { user: User }) {
         {/* Navigation */}
         <nav className={clsx("mt-8 space-y-2", collapsed && "mt-4")}>
         <SidebarButton icon={<FaUser />} label="Overview" collapsed={collapsed} path="/profile" />
-        <SidebarButton icon={<FaEdit />} label="Edit Profile" collapsed={collapsed} path="/profile/edit" />
+        <SidebarButton icon={<FaUserEdit />} label="Edit Profile" collapsed={collapsed} path="/profile/edit" />
         {(user?.role === "student") && (
           <SidebarButton icon={<FaFileAlt />} label="Resume" collapsed={collapsed} path="/profile/resume" />
         )}
@@ -82,7 +82,15 @@ export default function Sidebar({ user }: { user: User }) {
  
         )}
         {(user?.role === "admin") && (
-          <SidebarButton icon={<FaCalendarAlt />} label="Resources" collapsed={collapsed} path="/profile/admin/resources" />
+          <SidebarButton icon={<FaProjectDiagram />} label="Resources" collapsed={collapsed} path="/profile/admin/resources" />
+ 
+        )}
+        {(user?.role === "admin") && (
+          <SidebarButton icon={<FaChartBar />} label="Placements Stats" collapsed={collapsed} path="/profile/admin/placementsStats" />
+ 
+        )}
+        {(user?.role === "admin") && (
+          <SidebarButton icon={<FaChartLine />} label=" Admin-Dashoard" collapsed={collapsed} path="/profile/admin/dashboard" />
  
         )}
 
