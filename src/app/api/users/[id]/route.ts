@@ -65,3 +65,12 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       return NextResponse.json({ error: 'Failed to update user' }, { status: 400 });
     }
   }
+
+  // /app/api/users/[id]/route.ts (DELETE)
+
+
+export async function DELETE(_: Request, { params }: { params: { id: string } }) {
+  const { id } = params;
+  await prisma.user.delete({ where: { id } });
+  return NextResponse.json({ message: "User deleted" });
+}

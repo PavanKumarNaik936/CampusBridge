@@ -23,8 +23,7 @@ export const baseUserSchema = z.object({
   skills: z.array(z.string()).optional(),
 
   // Recruiter-specific
-  company: z.string().optional(),
-  companyLogo: z.url().optional(),
+  companyId: z.string().optional(), // ✅ Add this field
 });
 
 // Refined schema with role-based conditional validation
@@ -41,10 +40,10 @@ export const userSchema = baseUserSchema.refine((data) => {
 
   if (data.role === "recruiter") {
     return (
-      typeof data.company === "string" && data.company.trim() !== ""
+      typeof data.companyId === "string" && data.companyId.trim() !== ""
     );
   }
-
+  
   return true; // admin
 }, {
   message: "Missing required fields for selected role",

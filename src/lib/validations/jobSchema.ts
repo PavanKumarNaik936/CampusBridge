@@ -11,5 +11,5 @@ export const jobSchema = z.object({
     (date) => !date || date > new Date(),
     { message: "Deadline must be a future date" }
   ),
-  
+  companyId: z.string().min(1), // ✅ REQUIRED
 });

@@ -22,6 +22,9 @@ interface Job {
   postedBy: {
     name: string;
   };
+  company?: {
+    name: string;
+  };
 }
 
 export default function JobListingPage() {
@@ -59,8 +62,9 @@ export default function JobListingPage() {
 
     fetchJobs();
   }, [filters]);
+  // console.log(jobs);
 
-  const handleBookmark = async (targetId: string, type: "job" | "event" | "material") => {
+  const handleBookmark = async (targetId: string, type: "job" | "event" | "resource") => {
     setLoadingBookmarkId(targetId);
     try {
       await axios.post("/api/bookmarks", { targetId, type });
@@ -97,11 +101,11 @@ export default function JobListingPage() {
         router.push("/profile/edit");
         return;
       }
-      console.log("📦 Sending application payload:", {
-        jobId: selectedJob.id,
-        resumeSnapshotUrl: user.resumeUrl,
-        coverLetter: "",
-      });
+      // console.log("📦 Sending application payload:", {
+      //   jobId: selectedJob.id,
+      //   resumeSnapshotUrl: user.resumeUrl,
+      //   coverLetter: "",
+      // });
       
       await axios.post("/api/applications", {
         jobId: selectedJob.id,
@@ -161,12 +165,22 @@ export default function JobListingPage() {
           <option value="On-Site">On-Site</option>
           <option value="Hybrid">Hybrid</option>
         </select>
+            <button
+        className="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-xl font-medium shadow-sm"
+        onClick={() => setFilters({ location: "", type: "", mode: "" })}
+      >
+        🔄 Refresh
+      </button>
       </div>
+
 
       {/* Job Cards */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {jobs.map((job) => (
           <div key={job.id} className="bg-white shadow-md rounded-xl p-6 hover:shadow-lg transition-all border border-gray-100">
+            {job.company?.name && (
+            <p className="text-sm text-gray-600 italic">🏢 {job.company.name}</p>
+          )}
             <h2 className="text-xl font-bold text-blue-900 mb-2">{job.title}</h2>
             <p className="text-gray-700 mb-2 line-clamp-3">{job.description.slice(0, 100)}...</p>
             <p className="text-sm text-gray-500">
@@ -203,6 +217,10 @@ export default function JobListingPage() {
             <h2 className="text-2xl font-bold text-blue-800 mb-2">{selectedJob.title}</h2>
             <p className="text-gray-700 mb-2">{selectedJob.description}</p>
             <ul className="text-sm text-gray-600 space-y-1 mb-4">
+            {selectedJob.company?.name && (
+              <li><strong>🏢 Company:</strong> {selectedJob.company.name}</li>
+            )}
+
               <li><strong>📍 Location:</strong> {selectedJob.location}</li>
               <li><strong>💼 Type:</strong> {selectedJob.type}</li>
               <li><strong>🖥️ Mode:</strong> {selectedJob.mode}</li>

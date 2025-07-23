@@ -81,29 +81,38 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 // Delete job
 export async function DELETE(req: Request, { params }: { params: { id: string } }) {
   try {
-    const body = await req.json();
-
     const existingJob = await prisma.job.findUnique({ where: { id: params.id } });
 
     if (!existingJob) {
       return NextResponse.json({ error: "Job not found" }, { status: 404 });
     }
 
-     // 3. Get current user from session
-     const currentUserId = await getSessionUser(); // Should return string | null
-     if (!currentUserId) {
-       return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
-     }
+    const currentUserId = await getSessionUser(); // Should return { id: string }
+    if (!currentUserId) {
+      return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
+    }
+
     const user = await prisma.user.findUnique({ where: { id: currentUserId.id } });
 
     if (!user || (user.id !== existingJob.postedById && user.role !== "admin")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    await prisma.job.delete({ where: { id: params.id } });
+    await prisma.application.deleteMany({
+      where: {
+        jobId: params.id,
+      },
+    });
+    
+    await prisma.job.delete({
+      where: { id: params.id },
+    });
+    
+    // await prisma.job.delete({ where: { id: params.id } });
 
     return NextResponse.json({ message: "Job deleted successfully" });
   } catch (error) {
+    console.error("❌ Error deleting job:", error);
     return NextResponse.json({ error: "Failed to delete job" }, { status: 500 });
   }
 }
