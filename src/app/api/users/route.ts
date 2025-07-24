@@ -53,6 +53,18 @@ export async function GET() {
 
 // POST create new user
 export async function POST(req: Request) {
+  // Define course duration mapping
+const courseDurationByBranch: Record<string, number> = {
+  CSE: 4,
+  ECE: 4,
+  MECH: 4,
+  MME:4,
+  CIVIL:4,
+  EEE:4,
+  CHEM:4,
+  "AI/ML":4,
+  // Add other branches if needed
+};
     try {
       const body = await req.json();
       // console.log(body);
@@ -67,7 +79,21 @@ export async function POST(req: Request) {
       }
 
       // ✅ Proceed to create user if validation passes
-      const { companyId, ...rest } = parsedData;
+      // const { companyId, ...rest } = parsedData;
+
+      // const newUser = await prisma.user.create({
+      //   data: {
+      //     ...rest,
+      //     ...(companyId && { company: { connect: { id: companyId } } }),
+      //   },
+      // });
+            const { companyId, ...rest } = parsedData;
+
+      // Auto-fill graduation year if role is student
+      if (rest.role === "student" && rest.branch && rest.admissionYear) {
+        const duration = courseDurationByBranch[rest.branch] || 4; // default 4 years
+        rest.graduationYear = rest.admissionYear + duration;
+      }
 
       const newUser = await prisma.user.create({
         data: {
@@ -75,6 +101,7 @@ export async function POST(req: Request) {
           ...(companyId && { company: { connect: { id: companyId } } }),
         },
       });
+
   
       // ✅ Remove password before sending response
     const { password, ...userWithoutPassword } = newUser;

@@ -49,6 +49,7 @@ export async function POST(req: Request) {
 export async function GET() {
     try {
       const companies = await prisma.company.findMany({
+        select: { id: true, name: true },
         orderBy: { name: "asc" },
       });
       return NextResponse.json(companies);

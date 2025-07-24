@@ -25,14 +25,58 @@ export default function EditProfilePage() {
   const [skills, setSkills] = useState<string[]>(form.skills || []);
   const [achievements, setAchievements] = useState<string[]>(form.achievements || []);
   
-
+  const [companies, setCompanies] = useState<{ id: string; name: string }[]>([]);
   const [resumeFileName, setResumeFileName] = useState<string | null>(null);
   const [profileFileName, setProfileFileName] = useState<string | null>(null);
 
 
   const [isDirty, setIsDirty] = useState(false);
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      try {
+        const res = await axios.get("/api/companies");
+        setCompanies(res.data);
+      } catch (err) {
+        console.error("Failed to load companies", err);
+      }
+    };
+    fetchCompanies();
+  }, []);
+  const courseDurationByBranch: Record<string, number> = {
+    CSE: 4,
+    ECE: 4,
+    MECH: 4,
+    MME: 4,
+    CIVIL: 4,
+    EEE: 4,
+    CHEM: 4,
+    "AI/ML": 4,
+  };
+  
 
-
+  useEffect(() => {
+    const courseDurationByBranch: Record<string, number> = {
+      CSE: 4,
+      ECE: 4,
+      MECH: 4,
+      MME:4,
+      CIVIL:4,
+      EEE:4,
+      CHEM:4,
+      "AI/ML":4,
+    };
+  
+    const duration = courseDurationByBranch[form.branch || ""] || 4;
+  
+    if (form.admissionYear) {
+      const gradYear = parseInt(form.admissionYear.toString()) + duration;
+      setForm((prev) => ({
+        ...prev,
+        graduationYear: gradYear,
+      }));
+    }
+  }, [form.admissionYear, form.branch]);
+  
   useEffect(() => {
     if (sessionUser?.email) {
         axios.get(`/api/users/${sessionUser.id}`)
@@ -46,14 +90,24 @@ export default function EditProfilePage() {
     }
   }, [sessionUser]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setForm(prev => ({
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value, type } = e.target;
+  
+    setForm((prev) => ({
       ...prev,
-      [name]: value === "" ? undefined : value, // 👈 convert empty to undefined
+      [name]:
+        value === ""
+          ? undefined
+          : type === "number"
+          ? Number(value)
+          : value,
     }));
+  
     setIsDirty(true);
   };
+  
   
   function cleanUndefinedAndNull<T extends object>(obj: T): Partial<T> {
     const cleaned: Partial<T> = {};
@@ -202,8 +256,41 @@ export default function EditProfilePage() {
           <>
             <h2 className="mt-8 text-xl font-semibold text-[#14326E]">Academic Info</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-              <FloatingInput label="Branch" name="branch" value={form.branch || ""} onChange={handleChange} />
-              <FloatingInput label="Year" type="number" name="year" value={form.year || ""} onChange={handleChange} />
+            <label className="text-sm font-semibold text-gray-700">
+            Branch
+            <select
+              name="branch"
+              value={form.branch || ""}
+              onChange={handleChange}
+              className="w-full mt-1 px-4 py-2 border border-gray-300 rounded-xl bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+            >
+              <option value="">-- Select Branch --</option>
+              {Object.keys(courseDurationByBranch).map((branch) => (
+                <option key={branch} value={branch}>
+                  {branch}
+                </option>
+              ))}
+            </select>
+          </label>
+
+              
+              <FloatingInput
+              label="Admission Year"
+              type="number"
+              name="admissionYear"
+              value={form.admissionYear || ""}
+              onChange={handleChange}
+            />
+
+            <FloatingInput
+              label="Graduation Year"
+              type="number"
+              name="graduationYear"
+              value={form.graduationYear || ""}
+              disabled
+              onChange={() => {}}
+            />
+
               <FloatingInput label="Roll Number" name="rollNumber" value={form.rollNumber || ""} onChange={handleChange} />
               <FloatingInput label="CGPA" type="number" step="0.01" name="cgpa" value={form.cgpa || ""} onChange={handleChange} />
               {/* <FloatingInput label="Resume URL" name="resumeUrl" value={form.resumeUrl || ""} onChange={handleChange} /> */}
@@ -216,14 +303,29 @@ export default function EditProfilePage() {
         )}
 
         {dbUser.role === "recruiter" && (
-          <>
-            <h2 className="mt-8 text-xl font-semibold text-[#14326E]">Company Info</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-              <FloatingInput label="Company" name="company" value={form.company || ""} onChange={handleChange} />
-              <FloatingInput label="Company Logo URL" name="companyLogo" value={form.companyLogo || ""} onChange={handleChange} />
-            </div>
-          </>
-        )}
+      <>
+        <h2 className="mt-8 text-xl font-semibold text-[#14326E]">Company Info</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+          <label className="text-sm font-semibold text-gray-700">
+            Company
+            <select
+              name="companyId"
+              value={form.companyId || ""}
+              onChange={handleChange}
+              className="w-full mt-1 px-4 py-2 border border-gray-300 rounded-xl bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+            >
+              <option value="">-- Select Company --</option>
+              {companies.map((company) => (
+                <option key={company.id} value={company.id}>
+                  {company.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          {/* Optional: Preview selected company logo if needed */}
+        </div>
+      </>
+    )}
 
         <div className="mt-10">
           <button

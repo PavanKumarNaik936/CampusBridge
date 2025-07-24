@@ -108,6 +108,12 @@ export default function PostJob() {
         <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">
           📌 Post a New Job
         </h1>
+        <button
+          onClick={() =>router.push('/profile/jobs/companies') }
+          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl font-medium mb-4"
+        >
+          ➕ Add Company
+        </button>
 
         <form onSubmit={handleSubmit} className="grid gap-6">
 

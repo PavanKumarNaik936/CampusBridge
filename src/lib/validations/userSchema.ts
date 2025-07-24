@@ -21,7 +21,9 @@ export const baseUserSchema = z.object({
   portfolioUrl: z.url().optional(),
   achievements: z.array(z.string()).optional(),
   skills: z.array(z.string()).optional(),
-
+  admissionYear: z.number().min(2000).max(new Date().getFullYear() + 1).optional(),
+  graduationYear: z.number().optional(), // will be calculated
+  
   // Recruiter-specific
   companyId: z.string().optional(), // ✅ Add this field
 });

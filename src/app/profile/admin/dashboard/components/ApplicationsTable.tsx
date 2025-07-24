@@ -66,7 +66,7 @@ export default function ApplicationsTable() {
             <th className="p-2">Email</th>
             <th className="p-2">Job Title</th>
             <th className="p-2">Status</th>
-            <th className="p-2">Change</th>
+            {/* <th className="p-2">Change</th> */}
           </tr>
         </thead>
         <tbody>
@@ -87,7 +87,7 @@ export default function ApplicationsTable() {
                 {app.status}
             </span>
             </td>
-              <td className="p-2">
+              {/* <td className="p-2">
                 <select
                   value={app.status}
                   onChange={(e) =>
@@ -100,7 +100,7 @@ export default function ApplicationsTable() {
                   <option value="rejected">Rejected</option>
                   <option value="accepted">Accepted</option>
                 </select>
-              </td>
+              </td> */}
             </tr>
           ))}
         </tbody>
