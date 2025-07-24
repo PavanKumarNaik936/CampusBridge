@@ -1,36 +1,106 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# 📘 CampusBridge
 
-## Getting Started
+CampusBridge is a centralized platform that streamlines campus placements, internships, events, and resource sharing for students, faculty, recruiters, and administrators. It serves as a unified interface to connect opportunity providers and seekers, enriched with intuitive design, filtering, and analytics.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🚀 Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 🔐 Authentication & Roles
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+* Secure login for **Admin**, **Recruiter**, and **Student** roles
+* Social login via **Google** and **GitHub**
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+### 💼 Jobs & Internships
 
-## Learn More
+* Browse jobs and internships with filters for **location**, **type**, and **mode**
+* Students can apply and bookmark
+* Admins/Recruiters can post, update, and manage applications
 
-To learn more about Next.js, take a look at the following resources:
+### 📚 Resources
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+* Publicly accessible, categorized content
+* Filter and search by keywords and category
+* Bookmarking support
+* Admins can upload/delete resources
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+### 🎉 Events
 
-## Deploy on Vercel
+* View all events: **Upcoming**, **Cancelled**, and **Venue-wise**
+* Admins can create **Workshops**, **Webinars**, **Seminars**, and **Hackathons**
+* Bookmarking supported
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 📊 Placement Statistics
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+* Company-wise placement data
+* Branch-wise placement distribution
+* Offer-type distributions
+* Placement trends
+* Top placed student highlights
+
+### 👤 User Profiles & Bookmarks
+
+* View/Edit profiles
+* Manage bookmarks: Jobs, Events, Resources
+
+### 🧑‍💼 Admin Dashboard
+
+* Cards for total **students**, **jobs**, **events**, and **resources**
+* Quick navigation buttons
+* Bar chart for weekly applications
+* Pie chart for branch-wise distribution
+* Activity feed: new signups, postings, updates
+* User search and verification panel
+* View and manage all applications
+
+### 📬 Contact Page
+
+* Available for all users
+* Gradient UI with contact details
+
+---
+
+## 🧠 Upcoming Features
+
+### 🔔 Real-time Notifications
+
+* For application status changes, new jobs/events/resources, and incomplete profiles
+
+### 📝 Feedback System
+
+* Users can provide feedback on events, jobs, and resources
+
+### 🎟️ Attendance Tracking
+
+* **Offline**: QR Code system
+* **Online**: Via CampusBridge profile check-ins
+
+### 📄 PDF & Report Generation
+
+* Resume, application, event, and placement reports
+
+### 🎓 Alumni Network
+
+* Placed student profiles for juniors to view and connect
+
+### 🤖 AI Integrations
+
+* Poster generator for events
+* Mock test and resource generation
+* Resume analyzer with ATS score and suggestions
+
+---
+
+
+## 🛠️ Tech Stack
+
+* **Frontend**: Nextjs,React, Tailwind CSS, TypeScript
+* **Backend**: Node.js, Express, Prisma
+* **Database**: MongoDB
+* **Auth**: NextAuth (Google, GitHub)
+* **Deployment**: Vercel
+
+---
+
+
+Feel free to contribute, suggest improvements, or report issues. Together, let’s build a better campus experience with CampusBridge!
