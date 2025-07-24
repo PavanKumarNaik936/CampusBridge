@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
-import Sidebar from "@/components/Sidebar";
+
 import ProfileOverview from "@/components/ProfileOverview";
 import StudentDetails from "@/components/StudentDetails";
 import RecruiterDetails from "@/components/RecruiterDetails";

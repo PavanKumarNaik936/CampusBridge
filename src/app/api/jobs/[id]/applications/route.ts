@@ -15,8 +15,24 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         createdAt: "desc",
       },
     });
+    const applicationsWithPlacement = await Promise.all(
+      applications.map(async (app) => {
+        const placement = await prisma.placement.findFirst({
+          where: {
+            userId: app.userId,
+            jobId: app.jobId,
+          },
+        });
+  
+        return {
+          ...app,
+          isPlaced: !!placement, // dynamically add isPlaced
+        };
+      })
+    );
+  
 
-    return NextResponse.json({ applications });
+    return NextResponse.json({ applications: applicationsWithPlacement });
   } catch (err) {
     console.error(err);
     return NextResponse.json({ message: "Failed to fetch applications" }, { status: 500 });

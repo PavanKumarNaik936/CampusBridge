@@ -39,6 +39,8 @@ model User {
   resumeUrl     String? // Can also be used for recruiter portfolio
   portfolioUrl  String?
   achievements  String[] @default([])
+  admissionYear   Int?     // 👈 Add this if not present
+  graduationYear  Int?  
 
   // 🧑‍💼 Recruiter-Specific Fields
   companyId    String?

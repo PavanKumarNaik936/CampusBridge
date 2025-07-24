@@ -1,13 +1,43 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import axios from "axios";
+
+interface CompanyStat {
+  name: string;
+  offers: number;
+  highest: string;
+  average: string;
+}
+
 export default function CompanyWiseStats() {
-    const companies = [
-      { name: "Infosys", offers: 12, highest: "₹10 LPA", average: "₹6.5 LPA" },
-      { name: "TCS", offers: 8, highest: "₹9 LPA", average: "₹5.8 LPA" },
-      { name: "Wipro", offers: 5, highest: "₹7.5 LPA", average: "₹5.2 LPA" },
-    ];
-  
-    return (
-      <div className="bg-white rounded-xl p-4 shadow border border-gray-200">
-        <h3 className="text-lg font-semibold text-blue-700 mb-4">🏢 Company-wise Stats</h3>
+  const [companies, setCompanies] = useState<CompanyStat[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCompanyStats = async () => {
+      try {
+        const res = await axios.get("/api/placements/company-wise");
+        setCompanies(res.data);
+      } catch (err) {
+        console.error("Failed to fetch company stats", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCompanyStats();
+  }, []);
+
+  return (
+    <div className="bg-white rounded-xl p-4 shadow border border-gray-200">
+      <h3 className="text-lg font-semibold text-blue-700 mb-4">🏢 Company-wise Stats</h3>
+
+      {loading ? (
+        <p className="text-gray-500">Loading...</p>
+      ) : companies.length === 0 ? (
+        <p className="text-gray-500">No placement data available yet.</p>
+      ) : (
         <table className="w-full text-sm text-left">
           <thead>
             <tr className="border-b">
@@ -28,7 +58,7 @@ export default function CompanyWiseStats() {
             ))}
           </tbody>
         </table>
-      </div>
-    );
-  }
-  
+      )}
+    </div>
+  );
+}
