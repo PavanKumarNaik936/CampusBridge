@@ -7,6 +7,7 @@ import {
   NavigationMenuList,
   NavigationMenuLink,
 } from "@/components/ui/navigation-menu";
+import NotificationBell from "../NotificationBell";
 
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
@@ -53,7 +54,11 @@ export default function Navbar() {
 
           {/* Auth Section */}
           {status === "authenticated" && user ? (
+            <>
+            <NotificationBell />
             <UserDropdown user={user} />
+            </>
+            
           )  : (
             <Link href="/auth/login" passHref>
               <Button

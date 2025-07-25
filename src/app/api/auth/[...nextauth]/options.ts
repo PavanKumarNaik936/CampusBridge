@@ -5,6 +5,7 @@ import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import {prisma} from "@/lib/prisma"; // your Prisma client
+import { User } from "next-auth";
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -45,7 +46,11 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           role: user.role,
           isVerified: user.isVerified,
-        };
+          isOnline:user.isOnline,
+          lastSeen:user.lastSeen,
+          image:user.image,
+          profileImage:user.profileImage
+        } as User;
       },
     }),
     // ✅ Google provider
@@ -62,13 +67,32 @@ export const authOptions: NextAuthOptions = {
   ],
 
   callbacks: {
+    async signIn({ user }) {
+      try {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            isOnline: true,
+            lastSeen: new Date(),
+          },
+        });
+      } catch (err) {
+        console.error("Error updating user on signIn:", err);
+      }
+      return true;
+    },
+  
+   
     async jwt({ token, user,account,profile }) {
       if (user) {
+        
         token.id = user.id;
         token.name = user.name;
         token.email = user.email;
         token.role = user.role;
         token.isVerified = user.isVerified;
+        token.isOnline=user.isOnline;
+        token.lastSeen=user.lastSeen;
 
       }
       if (account && profile) {
@@ -86,6 +110,8 @@ export const authOptions: NextAuthOptions = {
         session.user.isVerified = token.isVerified as boolean;
         session.user.image = token.image as string;
         session.user.profileImage = token.profileImage ?? null;
+        session.user.isOnline=token.isOnline;
+        session.user.lastSeen=token.lastSeen;
         
       }
       return session;

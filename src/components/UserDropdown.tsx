@@ -9,6 +9,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { customSignOut } from "@/lib/signOutUser";
 
 interface UserDropdownProps {
   user: {
@@ -22,16 +23,19 @@ interface UserDropdownProps {
 
 export default function UserDropdown({ user }: UserDropdownProps) {
   const router = useRouter();
-
+// console.log(user.image);
+// console.log(user.profileImage);
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <div className="flex items-center gap-2 cursor-pointer">
-          <Avatar className="h-8 w-8 border-2 border-[#14326E] bg-white text-[#14326E]">
+          <Avatar className="h-8 w-8 border-1 border-[#000000] bg-white text-[#14326E]">
+            
             {user?.image || user?.profileImage ? (
               <AvatarImage
                 src={user.image ?? user.profileImage ?? ""}
                 alt="User image"
+                className="h-full w-full object-cover rounded-full"
               />
             ) : (
               <AvatarFallback>
@@ -90,7 +94,7 @@ export default function UserDropdown({ user }: UserDropdownProps) {
         {/* Logout Button */}
         <div className="flex justify-center">
           <button
-            onClick={() => signOut({ callbackUrl: '/' })}
+            onClick={customSignOut}
             className="w-full text-sm px-4 py-2 rounded-lg border border-red-500 text-red-600 hover:bg-red-50 transition font-semibold"
           >
             Logout

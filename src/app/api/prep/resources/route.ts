@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ResourceType } from "@/generated/prisma";
 import { getSessionUser } from "@/lib/getSessionUser";
+import { notifyUser } from "@/lib/notify";
 // import { ResourceBookmark } from "@/generated/prisma";
 // src/app/api/prep/resources/route.ts
 
@@ -134,7 +135,24 @@ export async function POST(req: NextRequest) {
           isPublic: isPublic ?? true,
         },
       });
-  
+
+           // ✅ Notify all students
+    //  console.info("notifying all users about new Resources");
+      const students = await prisma.user.findMany({
+        where: { role: "student" },
+        select: { id: true },
+      });
+
+      await Promise.all(
+        students.map((student) =>
+          notifyUser(
+            student.id,
+            `📢 New Resource added: ${newResource.title}`,
+            `${process.env.NEXT_PUBLIC_BASE_URL}/jobs`
+          )
+        )
+      );
+    
       return NextResponse.json(newResource, { status: 201 });
     } catch (error) {
       return NextResponse.json(
