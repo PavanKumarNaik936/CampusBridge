@@ -142,6 +142,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                 <option value="webinar">Webinar</option>
                 <option value="seminar">Seminar</option>
                 <option value="hackathon">Hackathon</option>
+                <option value="culturals">Culturals</option>
               </select>
             </div>
 

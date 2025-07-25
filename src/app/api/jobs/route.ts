@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { jobSchema } from "@/lib/validations/jobSchema";
 import { getSessionUser } from "@/lib/getSessionUser";
+import { notifyUser } from "@/lib/notify";
 // GET: Fetch all jobs
 
 export async function GET(req: Request) {
@@ -115,6 +116,22 @@ export async function POST(req: Request) {
           postedById: sessionUser.id,
         },
       });
+      // ✅ Notify all students
+      console.info("notifying all users about new job");
+      const students = await prisma.user.findMany({
+        where: { role: "student" },
+        select: { id: true },
+      });
+
+      await Promise.all(
+        students.map((student) =>
+          notifyUser(
+            student.id,
+            `📢 New job posted: ${newJob.title}`,
+            `${process.env.NEXT_PUBLIC_BASE_URL}/jobs`
+          )
+        )
+      );
   
       return NextResponse.json(newJob, { status: 201 });
   

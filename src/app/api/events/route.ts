@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-
+import { notifyUser } from "@/lib/notify";
 import { z } from "zod";
 
 // Step 1: Define the schema for validation
@@ -12,7 +12,7 @@ const EventSchema = z.object({
   title: z.string(),
   description: z.string(),
   imageUrl: z.string().optional(),
-  type: z.enum(["workshop", "webinar", "seminar", "hackathon"]),
+  type: z.enum(["workshop", "webinar", "seminar", "hackathon","culturals"]),
   startDate: z.string().transform((val) => new Date(val)),
   endDate: z.string().transform((val) => new Date(val)),
   venue: z.string(),
@@ -44,6 +44,22 @@ export async function POST(req: Request) {
       },
     });
 
+     // ✅ Notify all students
+    //  console.info("notifying all users about new Event");
+     const students = await prisma.user.findMany({
+       where: { role: "student" },
+       select: { id: true },
+     });
+
+     await Promise.all(
+       students.map((student) =>
+         notifyUser(
+           student.id,
+           `📢 New Event scheduled: ${newEvent.title}`,
+           `${process.env.NEXT_PUBLIC_BASE_URL}/jobs`
+         )
+       )
+     );
     return NextResponse.json(newEvent, { status: 201 });
   } catch (err) {
     if (err instanceof z.ZodError) {
