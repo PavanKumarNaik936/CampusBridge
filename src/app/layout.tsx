@@ -1,29 +1,31 @@
 'use client';
 
-import {Toaster} from 'sonner'
-import { Inter } from 'next/font/google'
-import './globals.css'
+import { Toaster } from 'sonner';
+import { Inter } from 'next/font/google';
+import './globals.css';
 import { SessionProvider } from 'next-auth/react';
-const inter = Inter({ subsets: ['latin'] })
 import Navbar from '@/components/landing/Navbar';
+import FeedbackFab from '@/components/FeedbackFab'; // 👈 Import it
 
+const inter = Inter({ subsets: ['latin'] });
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <html lang="en">
       <body className={inter.className}>
-      
         <SessionProvider>
-        <Navbar/>
-            {children}
-            <Toaster position="top-center" richColors />
+          <Navbar />
+          {children}
+
+          <FeedbackFab /> {/* 👈 Floating Feedback Button */}
+
+          <Toaster position="top-center" richColors />
         </SessionProvider>
-        
-        </body>
+      </body>
     </html>
-  )
+  );
 }
