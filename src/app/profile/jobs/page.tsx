@@ -97,7 +97,7 @@ export default function MyPostedJobs() {
     return (
       <div>
         <div className="text-center py-20 text-gray-500">
-          You haven't posted any jobs yet.
+          You have not posted any jobs yet.
         </div>
         <div className="flex justify-center">
           <button
