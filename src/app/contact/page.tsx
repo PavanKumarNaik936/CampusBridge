@@ -38,7 +38,7 @@ export default function ContactUs() {
         </h2>
 
             <p className="text-sm text-blue-100 text-transparent bg-clip-text" style={{backgroundImage:"linear-gradient(to right,#0047ab,#1ca9c9)"}}>
-            We're here to assist you with placements, events, or queries.
+            We are here to assist you with placements, events, or queries.
             </p>
         </div>
         <div className="mt-6">

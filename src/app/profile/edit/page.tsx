@@ -7,6 +7,7 @@ import { toast, Toaster } from "sonner";
 import axios from "axios";
 import { User } from "@/generated/prisma";
 import { ProfileImageUpload, ResumeUpload } from "@/components/FileUpload";
+import Image from "next/image";
 
 
 
@@ -175,7 +176,7 @@ export default function EditProfilePage() {
         prevPathRef.current = pathname;
       }
     }
-  }, [pathname]);
+  }, [pathname,isDirty,router]);
   
 
   if (status === "loading") return <div className="p-6">Loading session...</div>;
@@ -191,11 +192,13 @@ export default function EditProfilePage() {
           {/* Profile Image + Upload */}
           <div className="flex flex-col items-center sm:items-start gap-2">
             <label className="block text-sm font-medium text-gray-700 mb-1">Profile Image</label>
-            <img
-              src={form.profileImage || dbUser?.image || "/default-user.jpg"}
-              alt="Profile"
-              className="w-24 h-24 object-cover rounded-full border"
-            />
+            <Image
+            src={form.profileImage || dbUser?.image || "/default-user.jpg"}
+            alt="Profile"
+            width={96}
+            height={96}
+            className="w-24 h-24 object-cover rounded-full border"
+          />
             <ProfileImageUpload
               onUpload={(url, fileName) => {
                 setForm((prev) => {
