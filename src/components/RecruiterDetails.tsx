@@ -1,7 +1,7 @@
 // components/RecruiterDetails.tsx
 import { User } from "@/generated/prisma";
 import { FaBuilding, FaLinkedin } from "react-icons/fa";
-
+import Image from "next/image";
 type ExtendedUser = User & {
   company?: {
     name: string;
@@ -25,11 +25,16 @@ export default function RecruiterDetails({ user }: { user: ExtendedUser }) {
 
       {company?.logo && (
         <div className="mt-2">
-          <img
-            src={company.logo}
-            alt="Company Logo"
-            className="h-12 rounded-md border"
-          />
+         
+
+        <Image
+          src={company.logo || "/default-logo.png"} // fallback if logo is missing
+          alt="Company Logo"
+          width={48}          // equivalent to h-12 (12 * 4 = 48px)
+          height={48}
+          className="rounded-md border"
+        />
+
         </div>
       )}
 

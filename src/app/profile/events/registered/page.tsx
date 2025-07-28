@@ -52,7 +52,7 @@ export default function RegisteredEvents() {
     <div className="mt-8 px-4 sm:px-6 lg:px-8">
       <h2 className="text-2xl font-bold text-blue-800 mb-4">📌 Your Registered Events</h2>
       {registeredEvents.length === 0 ? (
-        <p className="text-gray-500 text-center">You haven't registered for any events yet.</p>
+        <p className="text-gray-500 text-center">You have not registered for any events yet.</p>
       ) : (
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {registeredEvents.map((event) => (

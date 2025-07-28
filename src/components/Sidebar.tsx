@@ -6,7 +6,7 @@ import { FaUser, FaEdit, FaFileAlt, FaBars, FaSignOutAlt,FaCalendarAlt,FaChartBa
 import { signOut } from "next-auth/react";
 import clsx from "clsx";
 import { useRouter } from "next/navigation";
-
+import Image from "next/image";
 
 export default function Sidebar({ user }: { user: User }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -22,11 +22,16 @@ export default function Sidebar({ user }: { user: User }) {
           onClick={() => setImageZoom(false)}
         >
           <div className="bg-white p-4 rounded-lg shadow-lg">
-            <img
-              src={user.profileImage|| user.image || "/default-user.png"}
-              alt="Zoomed Profile"
-              className="h-64 w-64 rounded-full border-4 border-[#14326E] object-cover"
-            />
+         
+
+        <Image
+          src={user.profileImage || user.image || "/default-user.png"}
+          alt="Zoomed Profile"
+          width={256} // h-64 = 64 * 4 = 256px
+          height={256} // w-64 = 64 * 4 = 256px
+          className="rounded-full border-4 border-[#14326E] object-cover"
+        />
+
           </div>
         </div>
       )}
@@ -50,12 +55,14 @@ export default function Sidebar({ user }: { user: User }) {
 
         {/* Profile Section */}
         <div className="flex flex-col items-center space-y-3">
-          <img
-            src={user.profileImage||user.image || "/default-user.jpg"}
-            alt="Profile"
-            onClick={() => setImageZoom(true)}
-            className="h-20 w-20 rounded-full border-4 border-[#14326E] shadow-sm object-cover cursor-pointer hover:scale-105 transition duration-200"
-          />
+        <Image
+          src={user.profileImage || user.image || "/default-user.jpg"}
+          alt="Profile"
+          width={80} // h-20 = 80px
+          height={80} // w-20 = 80px
+          onClick={() => setImageZoom(true)}
+          className="rounded-full border-4 border-[#14326E] shadow-sm object-cover cursor-pointer hover:scale-105 transition duration-200"
+        />
           {!collapsed && (
             <div className="text-center">
               <p className="text-lg font-bold text-[#14326E]">{user.name}</p>

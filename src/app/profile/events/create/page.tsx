@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+
+import Image from "next/image";
 import {
   FaCalendarAlt,
   FaMapMarkerAlt,
@@ -265,11 +267,13 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
           />
 
           {formData.imageUrl && (
-            <img
-              src={formData.imageUrl}
-              alt="Event Poster"
-              className="mt-4 max-h-48 rounded-xl shadow"
-            />
+            <Image
+            src={formData.imageUrl || "/default-poster.jpg"} // fallback if imageUrl is missing
+            alt="Event Poster"
+            width={400}           // adjust as needed
+            height={300}          // adjust as needed
+            className="mt-4 max-h-48 rounded-xl shadow object-cover"
+          />
           )}
         </div>
 
