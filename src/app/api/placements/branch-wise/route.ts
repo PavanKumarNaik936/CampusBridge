@@ -8,15 +8,7 @@ export async function GET(req: NextRequest) {
     const url = new URL(req.url);
     const graduationYear = url.searchParams.get("graduationYear");
 
-    // Step 1: Get all students grouped by branch, filter by graduation year if provided
-    // const studentFilter = graduationYear
-    //   ? {
-    //       role: "student",
-    //       graduationYear: parseInt(graduationYear),
-    //     }
-    //   : {
-    //       role: "student",
-    //     };
+   
         const studentFilter = graduationYear
         ? { role: Role.student, graduationYear: parseInt(graduationYear) }
         : { role: Role.student };

@@ -1,5 +1,5 @@
 "use client";
-
+import * as XLSX from "xlsx";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -12,6 +12,44 @@ import {
   FaUsers,
   FaSpinner,
 } from "react-icons/fa";
+
+
+async function handleDownloadAttendees(eventId: string, eventTitle: string) {
+  try {
+    const res = await fetch(`/api/events/${eventId}/attendees`);
+    const data = await res.json();
+
+    if (!data.attendees || data.attendees.length === 0) {
+      alert("No attendees to download.");
+      return;
+    }
+
+    const worksheet = XLSX.utils.json_to_sheet(data.attendees);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Attendees");
+
+    const blob = XLSX.write(workbook, { type: "binary", bookType: "xlsx" });
+
+    const buffer = new ArrayBuffer(blob.length);
+    const view = new Uint8Array(buffer);
+
+    for (let i = 0; i < blob.length; i++) {
+      view[i] = blob.charCodeAt(i) & 0xff;
+    }
+
+    const blobObj = new Blob([buffer], { type: "application/octet-stream" });
+    const url = window.URL.createObjectURL(blobObj);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${eventTitle.replace(/\s+/g, "_")}_attendees.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  } catch (err) {
+    console.error("Error downloading attendees:", err);
+    alert("Failed to download attendees.");
+  }
+}
 
 interface Event {
   id: string;
@@ -168,6 +206,14 @@ export default function MyPostedEvents() {
                 <FaUserCheck className="text-green-600" />
                 Attended: {event.attended?.length || 0}
               </p>
+              {session?.user.role === "admin" && event.attendees.length > 0 && (
+              <button
+                onClick={() => handleDownloadAttendees(event.id, event.title)}
+                className="mt-3 bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-sm font-medium"
+              >
+                📥 Download Attendees (Excel)
+              </button>
+            )}
             </div>
           </div>
         ))}
