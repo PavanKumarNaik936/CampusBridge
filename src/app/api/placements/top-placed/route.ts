@@ -20,11 +20,14 @@ export async function GET(req: Request) {
       take: 6, // Top 6 highest packages
     });
 
-    const result = placements.map((p) => ({
-      name: `${p.user.name}`,
-      company: p.company.name,
-      package: `₹${p.package} LPA`,
-    }));
+    // ✅ Filter out entries with null user or company
+    const result = placements
+      .filter((p) => p.user && p.company)
+      .map((p) => ({
+        name: p.user?.name ?? "Unknown",
+        company: p.company?.name ?? "Unknown",
+        package: `₹${p.package} LPA`,
+      }));
 
     return NextResponse.json(result);
   } catch (error) {
