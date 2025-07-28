@@ -54,7 +54,7 @@ const handleBookmark = async (targetId: string, type: "resource") => {
   useEffect(() => {
     fetchCategories();
     fetchResources();
-  }, []);
+  });
 
   useEffect(() => {
     const delay = setTimeout(() => {
