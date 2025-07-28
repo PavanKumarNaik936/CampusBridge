@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import CreateCompanyForm from "./CreateCompanyForm";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 interface Company {
   id: string;
   name: string;
@@ -81,7 +82,16 @@ const router=useRouter();
           <div key={company.id} className="bg-white shadow-md rounded-xl p-4">
             <h3 className="text-xl font-semibold text-blue-700 mb-1">{company.name}</h3>
             {company.logo && (
-              <img src={company.logo} alt={company.name} className="h-12 w-auto mb-2" />
+              
+
+              <Image
+                src={company.logo || "/default-logo.png"} // fallback if logo is missing
+                alt={company.name}
+                width={100} // adjust as needed
+                height={48}  // adjust to match original `h-12` (48px)
+                className="mb-2 w-auto h-12"
+              />
+              
             )}
             <p className="text-sm text-gray-600">
               {company.sector} | {company.location}

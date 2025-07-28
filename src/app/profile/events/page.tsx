@@ -12,7 +12,7 @@ import {
   FaUsers,
   FaSpinner,
 } from "react-icons/fa";
-
+import Image from "next/image";
 
 async function handleDownloadAttendees(eventId: string, eventTitle: string) {
   try {
@@ -149,9 +149,13 @@ export default function MyPostedEvents() {
             className="bg-white shadow-md rounded-2xl p-6 hover:shadow-lg transition-all border border-gray-100"
           >
             {event.imageUrl && (
-              <img
-                src={event.imageUrl}
+             
+
+              <Image
+                src={event.imageUrl || "/default-poster.jpg"} // Fallback if imageUrl is undefined
                 alt="Event Poster"
+                width={800} // Adjust based on expected container width
+                height={300} // Adjust to maintain aspect ratio
                 className="rounded-xl mb-3 max-h-48 object-cover w-full"
               />
             )}
