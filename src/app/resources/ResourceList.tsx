@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useEffect, useState } from "react";
+import { useEffect, useState ,useCallback} from "react";
 import axios from "axios";
 import { Card } from "@/components/ui/card";
 import { AiOutlineFilePdf, AiOutlineLink } from "react-icons/ai";
@@ -29,66 +29,66 @@ export default function ResourceList() {
   const { data: session } = useSession();
 const [loadingBookmarkId, setLoadingBookmarkId] = useState<string | null>(null);
 
-const handleBookmark = async (targetId: string, type: "resource") => {
-    if (!session?.user?.id) {
-      toast.warning("Please login to bookmark.");
-      return;
-    }
-  
-    setLoadingBookmarkId(targetId);
-    try {
-      await axios.post("/api/bookmarks", { targetId, type });
-      toast.success("🔖 Bookmarked!");
-    } catch (err: any) {
-      if (err.response?.data?.error === "Already bookmarked") {
-        toast.warning("You've already bookmarked this.");
-      } else {
-        toast.error("❌ Failed to bookmark. Try again.");
-      }
-    } finally {
-      setLoadingBookmarkId(null);
-    }
-  };
-  
+const fetchCategories = async () => {
+  try {
+    const res = await axios.get("/api/prep/categories");
+    setCategories(res.data);
+  } catch (err) {
+    console.error("Failed to load categories", err);
+  }
+};
 
-  useEffect(() => {
-    fetchCategories();
+const fetchResources = useCallback(async () => {
+  setLoading(true);
+  try {
+    const res = await axios.get("/api/prep/resources", {
+      params: {
+        search,
+        categoryId: selectedCategory,
+      },
+    });
+    setResources(res.data);
+  } catch (err) {
+    console.error("Failed to load resources", err);
+  } finally {
+    setLoading(false);
+  }
+}, [search, selectedCategory]);
+
+useEffect(() => {
+  fetchCategories();
+  fetchResources();
+}, [fetchResources]);
+
+useEffect(() => {
+  const delay = setTimeout(() => {
     fetchResources();
-  });
+  }, 400); // debounce
 
-  useEffect(() => {
-    const delay = setTimeout(() => {
-      fetchResources();
-    }, 400); // debounce
+  return () => clearTimeout(delay);
+}, [search, selectedCategory, fetchResources]);
 
-    return () => clearTimeout(delay);
-  }, [search, selectedCategory]);
+const handleBookmark = async (targetId: string, type: "resource") => {
+  if (!session?.user?.id) {
+    toast.warning("Please login to bookmark.");
+    return;
+  }
 
-  const fetchCategories = async () => {
-    try {
-      const res = await axios.get("/api/prep/categories");
-      setCategories(res.data);
-    } catch (err) {
-      console.error("Failed to load categories", err);
+  setLoadingBookmarkId(targetId);
+  try {
+    await axios.post("/api/bookmarks", { targetId, type });
+    toast.success("🔖 Bookmarked!");
+  } catch (err: any) {
+    if (err.response?.data?.error === "Already bookmarked") {
+      toast.warning("You've already bookmarked this.");
+    } else {
+      toast.error("❌ Failed to bookmark. Try again.");
     }
-  };
+  } finally {
+    setLoadingBookmarkId(null);
+  }
+};
 
-  const fetchResources = async () => {
-    setLoading(true);
-    try {
-      const res = await axios.get("/api/prep/resources", {
-        params: {
-          search,
-          categoryId: selectedCategory,
-        },
-      });
-      setResources(res.data);
-    } catch (err) {
-      console.error("Failed to load resources", err);
-    } finally {
-      setLoading(false);
-    }
-  };
 //   console.log(resources);
   const renderIcon = (type: string) => {
     switch (type.toLowerCase()) {
