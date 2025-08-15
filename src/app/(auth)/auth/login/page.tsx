@@ -32,7 +32,8 @@ export default function LoginPage() {
   };
 
   const handleSocialLogin = (provider: 'google' | 'github') => {
-    signIn(provider, { callbackUrl: 'http://localhost:3000' });
+    signIn(provider, { callbackUrl: process.env.NEXTAUTH_URL })
+
   };
 
   return (
