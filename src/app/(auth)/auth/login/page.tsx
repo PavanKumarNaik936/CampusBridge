@@ -32,7 +32,7 @@ export default function LoginPage() {
   };
 
   const handleSocialLogin = (provider: 'google' | 'github') => {
-    signIn(provider, { callbackUrl: process.env.NEXTAUTH_URL })
+    signIn(provider, { callbackUrl: '/'})
 
   };
 
