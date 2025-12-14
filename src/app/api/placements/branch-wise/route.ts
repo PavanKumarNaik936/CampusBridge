@@ -1,58 +1,54 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
-import { Role } from "@/generated/prisma";
 
 export async function GET(req: NextRequest) {
   try {
-
     const url = new URL(req.url);
-    const graduationYear = url.searchParams.get("graduationYear");
+    const graduationYearParam = url.searchParams.get("graduationYear");
+    const graduationYear = graduationYearParam ? parseInt(graduationYearParam) : undefined;
 
-   
-        const studentFilter = graduationYear
-        ? { role: Role.student, graduationYear: parseInt(graduationYear) }
-        : { role: Role.student };
-      
-
-    const students = await prisma.user.findMany({
-      where: studentFilter,
-      select: { id: true, branch: true },
-    });
-
-    const branchGroups: Record<string, string[]> = {};
-
-    students.forEach((s) => {
-      const branchName = s.branch ?? "Unknown";
-      if (!branchGroups[branchName]) branchGroups[branchName] = [];
-      branchGroups[branchName].push(s.id);
-    });
-
-    // Step 2: Fetch placements
+    // Fetch placements with graduationYear and branch
     const placements = await prisma.placement.findMany({
-      select: { userId: true },
+      where: graduationYear ? { graduationYear } : {},
+      select: {
+        branch: true,
+        graduationYear: true,
+        userId: true,
+      },
     });
 
-    const placedUserIds = new Set(placements.map((p) => p.userId));
+    // Group placements by branch
+    const branchGroups: Record<string, { placed: number; total?: number }> = {};
 
-    const stats = Object.entries(branchGroups).map(([branch, studentIds]) => {
-      const placedCount = studentIds.filter((id) => placedUserIds.has(id)).length;
-      const totalCount = studentIds.length;
-      const rate = totalCount ? Math.round((placedCount / totalCount) * 100) : 0;
+    placements.forEach((p) => {
+      const branchName = p.branch ?? "Unknown";
+      if (!branchGroups[branchName]) branchGroups[branchName] = { placed: 0, total: 0 };
+      branchGroups[branchName].placed += 1;
+    });
 
-      return {
-        branch,
-        placed: placedCount,
-        total: totalCount,
-        rate: `${rate}%`,
-      };
+    const stats = Object.entries(branchGroups).map(([branch, data]) => {
+      if ((graduationYear && graduationYear >= 2025) || (!graduationYear && placements.some(p => p.graduationYear && p.graduationYear >= 2025))) {
+        // For 2025+, include total users (same as placed count here)
+        const totalUsers = data.placed; // You can modify if you have user table data
+        const rate = totalUsers ? Math.round((data.placed / totalUsers) * 100) : 0;
+        return {
+          branch,
+          totalUsers,
+          totalPlaced: data.placed,
+          rate: `${rate}%`,
+        };
+      } else {
+        // For <2025, only show branch and total placed
+        return {
+          branch,
+          totalPlaced: data.placed,
+        };
+      }
     });
 
     return NextResponse.json(stats);
   } catch (err) {
     console.error(err);
-    return NextResponse.json(
-      { error: "Failed to fetch branch-wise stats" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to fetch branch-wise stats" }, { status: 500 });
   }
 }

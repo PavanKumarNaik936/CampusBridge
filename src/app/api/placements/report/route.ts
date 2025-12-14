@@ -3,183 +3,136 @@ import { NextResponse } from "next/server";
 import { Role } from "@/generated/prisma";
 import ExcelJS from "exceljs";
 
-// ✅ Force Node.js runtime (not Edge)
+// Force Node.js runtime (required for ExcelJS)
 export const runtime = "nodejs";
 
-export async function GET() {
+interface Params {
+  searchParams?: { graduationYear?: string };
+}
+
+export async function GET(req: Request, { searchParams }: Params) {
   try {
+    const url = new URL(req.url);
+    const graduationYearParam = url.searchParams.get("graduationYear");
+    const graduationYear = graduationYearParam ? parseInt(graduationYearParam) : undefined;
+    // console.log(graduationYear);
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet("Placement Report");
 
     // Helper to add a section
     const addSection = (title: string, headers: string[], rows: any[]) => {
       sheet.addRow([]);
-      sheet.addRow([title]).font = { bold: true };
+      const titleRow = sheet.addRow([title]);
+      titleRow.font = { bold: true, size: 14 };
       sheet.addRow(headers);
       rows.forEach((row) => {
         sheet.addRow(headers.map((h) => row[h] ?? ""));
       });
     };
 
-    // 1. Branch-wise Stats
-    const students = await prisma.user.findMany({
-      where: { role: Role.student },
-      select: { id: true, branch: true },
-    });
-
-    const branchGroups: Record<string, string[]> = {};
-    students.forEach((s) => {
-      const branch = s.branch ?? "Unknown";
-      if (!branchGroups[branch]) branchGroups[branch] = [];
-      branchGroups[branch].push(s.id);
-    });
-
+    // Fetch placements, optionally filter by graduation year
     const placements = await prisma.placement.findMany({
-      select: { userId: true },
+      where: graduationYear ? { graduationYear } : {},
+      include: {
+        user: true,
+        company: true,
+        job: true,
+      },
     });
 
-    const placedUserIds = new Set(placements.map((p) => p.userId));
-    const branchStats = Object.entries(branchGroups).map(([branch, ids]) => {
-      const placed = ids.filter((id) => placedUserIds.has(id)).length;
-      const total = ids.length;
-      const rate = total ? Math.round((placed / total) * 100) : 0;
+    if (placements.length === 0) {
+      return NextResponse.json({ error: "No placements found" }, { status: 404 });
+    }
+
+    // 1. Placement Overview (all placed students)
+    const placementOverview = placements.map((p) => ({
+      Name: p.userName ?? p.user?.name ?? "Unknown",
+      Branch: p.branch ?? p.user?.branch ?? "Unknown",
+      Email: p.userEmail ?? p.user?.email ?? "Unknown",
+      Contact: p.contactNumber ?? p.user?.phone ?? "Not Provided",
+      Company: p.company?.name ?? "Unknown",
+      JobTitle: p.job?.title ?? "Unknown",
+      Package: p.package,
+      GraduationYear: p.graduationYear ?? p.user?.graduationYear ?? "Unknown",
+    }));
+    addSection(
+      "Placement Overview",
+      ["Name", "Branch", "Email", "Contact", "Company", "JobTitle", "Package", "GraduationYear"],
+      placementOverview
+    );
+
+    // 2. Branch-wise analysis
+    const branchMap = new Map<string, { placed: number; total: number }>();
+    placements.forEach((p) => {
+      const branch = p.branch ?? p.user?.branch ?? "Unknown";
+      if (!branchMap.has(branch)) branchMap.set(branch, { placed: 0, total: 0 });
+      const val = branchMap.get(branch)!;
+      val.placed++;
+      val.total++; // For simplicity, using placements as total students
+    });
+
+    const branchStats = Array.from(branchMap.entries()).map(([branch, { placed, total }]) => ({
+      Branch: branch,
+      Placed: placed,
+      Total: total,
+      Rate: total ? `${Math.round((placed / total) * 100)}%` : "0%",
+    }));
+    addSection("Branch-wise Analysis", ["Branch", "Placed", "Total", "Rate"], branchStats);
+
+    // 3. Company-wise analysis
+    const companyMap = new Map<string, number[]>();
+    placements.forEach((p) => {
+      const company = p.company?.name ?? "Unknown";
+      if (!companyMap.has(company)) companyMap.set(company, []);
+      companyMap.get(company)!.push(p.package);
+    });
+
+    const companyStats = Array.from(companyMap.entries()).map(([company, packages]) => {
+      const highest = Math.max(...packages);
+      const average = (packages.reduce((a, b) => a + b, 0) / packages.length).toFixed(2);
       return {
-        Branch: branch,
-        Placed: placed,
-        Total: total,
-        Rate: `${rate}%`,
+        Company: company,
+        Offers: packages.length,
+        Highest: `₹${highest} LPA`,
+        Average: `₹${average} LPA`,
       };
     });
+    addSection("Company-wise Analysis", ["Company", "Offers", "Highest", "Average"], companyStats);
 
-    addSection("Branch Stats", ["Branch", "Placed", "Total", "Rate"], branchStats);
-
-    // 2. Company-wise Stats
-    const companies = await prisma.company.findMany({
-      select: {
-        name: true,
-        placements: { select: { package: true } },
-      },
-    });
-
-    const companyStats = companies
-      .filter((c) => c.placements.length > 0)
-      .map((company) => {
-        const packages = company.placements.map((p) => p.package);
-        const highest = Math.max(...packages);
-        const average = (
-          packages.reduce((sum, p) => sum + p, 0) / packages.length
-        ).toFixed(2);
-        return {
-          Company: company.name,
-          Offers: company.placements.length,
-          Highest: `₹${highest} LPA`,
-          Average: `₹${average} LPA`,
-        };
-      });
-
-    addSection("Company Stats", ["Company", "Offers", "Highest", "Average"], companyStats);
-
-    // 3. Offer Types
-    const placementsWithJob = await prisma.placement.findMany({
-      include: { job: true },
-    });
-
-    let fullTime = 0,
-      internship = 0,
-      unknown = 0;
-    placementsWithJob.forEach((p) => {
-      const type = p.job?.type?.toLowerCase();
-      if (type === "full-time") fullTime++;
-      else if (type === "internship") internship++;
-      else unknown++;
-    });
-
-    const offerTypeStats = [
-      { Type: "Full-Time", Count: fullTime },
-      { Type: "Internship", Count: internship },
-    ];
-    if (unknown > 0)
-      offerTypeStats.push({ Type: "Unknown", Count: unknown });
-
-    addSection("Offer Types", ["Type", "Count"], offerTypeStats);
-
-    // 4. Overall Stats
-    const totalOffers = placementsWithJob.length;
-    const totalPlaced = new Set(placementsWithJob.map((p) => p.userId)).size;
-    const jobs = await prisma.job.findMany({ select: { companyId: true } });
-    const companiesVisited = new Set(jobs.map((j) => j.companyId)).size;
-    const highestPackage = Math.max(...placementsWithJob.map((p) => p.package));
-    const avgPackage = (
-      placementsWithJob.reduce((sum, p) => sum + p.package, 0) / totalOffers
-    ).toFixed(2);
-    const totalStudents = await prisma.user.count({
-      where: { role: Role.student },
-    });
-
-    const overallStats = [
-      { Metric: "Total Students", Value: totalStudents },
-      { Metric: "Total Placed", Value: totalPlaced },
-      { Metric: "Total Offers", Value: totalOffers },
-      { Metric: "Companies Visited", Value: companiesVisited },
+    // 4. Package Analysis
+    const packages = placements.map((p) => p.package);
+    const highestPackage = Math.max(...packages);
+    const avgPackage = (packages.reduce((a, b) => a + b, 0) / packages.length).toFixed(2);
+    addSection("Package Analysis", ["Metric", "Value"], [
       { Metric: "Highest Package", Value: `₹${highestPackage} LPA` },
       { Metric: "Average Package", Value: `₹${avgPackage} LPA` },
-      {
-        Metric: "Placement Rate",
-        Value: `${((totalPlaced / totalStudents) * 100).toFixed(0)}%`,
-      },
-    ];
+    ]);
 
-    addSection("Overall Stats", ["Metric", "Value"], overallStats);
+    // 5. Top Students (by package)
+    const topStudents = placements
+      .sort((a, b) => b.package - a.package)
+      .slice(0, 10)
+      .map((p) => ({
+        Name: p.userName ?? p.user?.name ?? "Unknown",
+        Company: p.company?.name ?? "Unknown",
+        Package: `₹${p.package} LPA`,
+      }));
+    addSection("Top Students", ["Name", "Company", "Package"], topStudents);
 
-    // 5. Top Placements
-    const topPlacements = await prisma.placement.findMany({
-      include: { user: true, company: true },
-      orderBy: { package: "desc" },
-      take: 6,
-    });
-
-    const topPlacementStats = topPlacements.map((p) => ({
-      Name: p.user?.name ?? "Unknown",
-      Company: p.company?.name ?? "Unknown",
-      Package: `₹${p.package} LPA`,
-    }));
-
-    addSection("Top Students", ["Name", "Company", "Package"], topPlacementStats);
-
-    // 6. Yearly Trends
-    const trendData = await prisma.placement.findMany({
-      include: { user: { select: { graduationYear: true } } },
-    });
-
-    const trendMap = new Map<number, number>();
-    trendData.forEach((p) => {
-      const year = p.user?.graduationYear;
-      if (year) trendMap.set(year, (trendMap.get(year) || 0) + 1);
-    });
-
-    const trends = Array.from(trendMap.entries()).map(([year, count]) => ({
-      Year: year,
-      Placed: count,
-    }));
-
-    addSection("Yearly Trends", ["Year", "Placed"], trends);
-
-    // 🔄 Return Excel file as response
+    // Convert to buffer
     const buffer = await workbook.xlsx.writeBuffer();
+    const uint8Array = new Uint8Array(buffer);
 
-    return new NextResponse(buffer as unknown as Buffer, {
+    return new NextResponse(uint8Array, {
       status: 200,
       headers: {
         "Content-Type":
           "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        "Content-Disposition": "attachment; filename=placement-report.xlsx",
+        "Content-Disposition": `attachment; filename=placement-report-${graduationYear || "all"}.xlsx`,
       },
     });
   } catch (err) {
-    console.error("Error generating Excel report:", err);
-    return NextResponse.json(
-      { error: "Failed to generate Excel report" },
-      { status: 500 }
-    );
+    console.error("Error generating report:", err);
+    return NextResponse.json({ error: "Failed to generate Excel report" }, { status: 500 });
   }
 }

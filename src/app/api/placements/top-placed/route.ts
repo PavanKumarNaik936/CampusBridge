@@ -8,26 +8,25 @@ export async function GET(req: Request) {
 
     const placements = await prisma.placement.findMany({
       where: graduationYear
-        ? { user: { graduationYear: parseInt(graduationYear) } }
+        ? { graduationYear: parseInt(graduationYear) }
         : {},
       include: {
-        user: true,
         company: true,
       },
       orderBy: {
         package: "desc",
       },
-      take: 6, // Top 6 highest packages
+      take: 6, // top 6
     });
-
-    // ✅ Filter out entries with null user or company
-    const result = placements
-      .filter((p) => p.user && p.company)
-      .map((p) => ({
-        name: p.user?.name ?? "Unknown",
-        company: p.company?.name ?? "Unknown",
-        package: `₹${p.package} LPA`,
-      }));
+    console.log(placements);
+    const result = placements.map((p) => ({
+      name: p.userName ?? "Unknown",
+      branch: p.branch ?? "Unknown",
+      contactNumber: p.contactNumber ?? "N/A",
+      company: p.company?.name ?? "Unknown",
+      package: `₹${p.package} LPA`,
+      graduationYear: p.graduationYear ?? "N/A",
+    }));
 
     return NextResponse.json(result);
   } catch (error) {

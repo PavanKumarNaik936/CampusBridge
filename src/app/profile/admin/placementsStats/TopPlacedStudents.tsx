@@ -37,6 +37,7 @@ export default function TopPlacedStudents() {
           ? `/api/placements/top-placed?graduationYear=${selectedYear}`
           : `/api/placements/top-placed`;
         const { data } = await axios.get(url);
+        console.log(data);
         setStudents(data);
       } catch (err) {
         console.error("Failed to fetch students", err);

@@ -55,14 +55,14 @@ export async function GET() {
 export async function POST(req: Request) {
   // Define course duration mapping
 const courseDurationByBranch: Record<string, number> = {
-  CSE: 4,
-  ECE: 4,
-  MECH: 4,
-  MME:4,
-  CIVIL:4,
-  EEE:4,
-  CHEM:4,
-  "AI/ML":4,
+  CSE: 6,
+  ECE: 6,
+  MECH: 6,
+  MME:6,
+  CIVIL:6,
+  EEE:6,
+  CHEM:6,
+  "AI/ML":6,
   // Add other branches if needed
 };
     try {
@@ -91,7 +91,7 @@ const courseDurationByBranch: Record<string, number> = {
 
       // Auto-fill graduation year if role is student
       if (rest.role === "student" && rest.branch && rest.admissionYear) {
-        const duration = courseDurationByBranch[rest.branch] || 4; // default 4 years
+        const duration = courseDurationByBranch[rest.branch] || 6; // default 4 years
         rest.graduationYear = rest.admissionYear + duration;
       }
 

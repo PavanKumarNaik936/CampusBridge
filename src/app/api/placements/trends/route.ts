@@ -4,20 +4,17 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
+    // Fetch only graduationYear from placements
     const placements = await prisma.placement.findMany({
-      include: {
-        user: {
-          select: {
-            graduationYear: true,
-          },
-        },
+      select: {
+        graduationYear: true,
       },
     });
 
     const trendsMap = new Map<number, number>();
 
     placements.forEach((placement) => {
-      const year = placement.user?.graduationYear;
+      const year = placement.graduationYear;
       if (year && year > 0) {
         trendsMap.set(year, (trendsMap.get(year) || 0) + 1);
       }

@@ -51,47 +51,100 @@ export default function CreateEventPage() {
     setFormData({ ...formData, [target.name]: value });
   };
 
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
   
-
-const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-  setLoading(true);
-
-  const payload = {
-    ...formData,
-    maxAttendees: formData.maxAttendees
-      ? Number(formData.maxAttendees)
-      : null,
+    try {
+      const now = new Date();
+      const start = new Date(formData.startDate);
+      const end = new Date(formData.endDate);
+  
+      let status: "upcoming" | "ongoing" | "completed" = "upcoming";
+  
+      if (now < start) {
+        status = "upcoming";
+      } else if (now >= start && now <= end) {
+        status = "ongoing";
+      } else {
+        status = "completed";
+      }
+  
+      const payload = {
+        ...formData,
+        maxAttendees: formData.maxAttendees
+          ? Number(formData.maxAttendees)
+          : null,
+        status,
+      };
+  
+      const res = await axios.post("/api/events", payload);
+  
+      if (res.status === 200 || res.status === 201) {
+        toast.success("🎉 Event created successfully!");
+        router.push("/profile/events");
+      } else {
+        toast.error("Failed to create event");
+      }
+    } catch (error: any) {
+      const serverError = error?.response?.data?.error;
+  
+      if (Array.isArray(serverError)) {
+        serverError.forEach((err: any) => {
+          toast.error(err.message || "Validation error");
+        });
+      } else if (typeof serverError === "string") {
+        toast.error(serverError);
+      } else {
+        toast.error("Something went wrong");
+      }
+  
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
-  try {
-    const res = await axios.post("/api/events", payload);
+  
 
-    if (res.status === 200 || res.status === 201) {
-      toast.success("🎉 Event created successfully!");
-      router.push("/profile/events");
-    } else {
-      toast.error("Failed to create event");
-    }
-  } catch (error: any) {
-    const serverError = error?.response?.data?.error;
+// const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+//   e.preventDefault();
+//   setLoading(true);
+
+//   const payload = {
+//     ...formData,
+//     maxAttendees: formData.maxAttendees
+//       ? Number(formData.maxAttendees)
+//       : null,
+//   };
+//   try {
+//     const res = await axios.post("/api/events", payload);
+
+//     if (res.status === 200 || res.status === 201) {
+//       toast.success("🎉 Event created successfully!");
+//       router.push("/profile/events");
+//     } else {
+//       toast.error("Failed to create event");
+//     }
+//   } catch (error: any) {
+//     const serverError = error?.response?.data?.error;
   
-    if (Array.isArray(serverError)) {
-      // If it's an array of Zod errors
-      serverError.forEach((err: any) => {
-        toast.error(err.message || "Validation error");
-      });
-    } else if (typeof serverError === "string") {
-      toast.error(serverError);
-    } else {
-      toast.error("Something went wrong");
-    }
+//     if (Array.isArray(serverError)) {
+//       // If it's an array of Zod errors
+//       serverError.forEach((err: any) => {
+//         toast.error(err.message || "Validation error");
+//       });
+//     } else if (typeof serverError === "string") {
+//       toast.error(serverError);
+//     } else {
+//       toast.error("Something went wrong");
+//     }
   
-    console.error(error);
-  }
-  finally {
-    setLoading(false);
-  }
-};
+//     console.error(error);
+//   }
+//   finally {
+//     setLoading(false);
+//   }
+// };
 
 
   return (

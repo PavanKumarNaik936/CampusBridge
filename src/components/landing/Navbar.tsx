@@ -152,6 +152,7 @@ export default function Navbar() {
           )}
 
           {/* Hamburger Menu */}
+          {/* <div className="md:hidden"> */}
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
               <Button
@@ -185,6 +186,7 @@ export default function Navbar() {
               </div>
             </SheetContent>
           </Sheet>
+          {/* </div> */}
         </div>
       </div>
     </nav>

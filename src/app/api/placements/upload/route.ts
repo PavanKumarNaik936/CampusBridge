@@ -3,18 +3,13 @@ import { prisma } from "@/lib/prisma";
 
 // ✅ Convert Excel serial number to JS Date
 function excelDateToJSDate(serial: number): Date {
-  const excelEpoch = new Date(Date.UTC(1899, 11, 30)); // Dec 30, 1899
+  const excelEpoch = new Date(Date.UTC(1899, 11, 30));
   return new Date(excelEpoch.getTime() + serial * 86400 * 1000);
 }
 
 // ✅ Check if Date is valid
 function isValidDate(d: Date): boolean {
-  return (
-    d instanceof Date &&
-    !isNaN(d.getTime()) &&
-    d.getFullYear() >= 2000 &&
-    d.getFullYear() <= 2100
-  );
+  return d instanceof Date && !isNaN(d.getTime()) && d.getFullYear() >= 2000 && d.getFullYear() <= 2100;
 }
 
 // ✅ Flexible parser for Excel serials and string dates
@@ -24,7 +19,6 @@ function parseDateFlexible(input: any): Date | null {
     const date = excelDateToJSDate(asNumber);
     return isValidDate(date) ? date : null;
   }
-
   const date = new Date(input);
   return isValidDate(date) ? date : null;
 }
@@ -44,10 +38,20 @@ export async function POST(req: NextRequest) {
     for (const entry of placements) {
       rowNum++;
 
-      const { userEmail, companyName, jobTitle, package: pkg, date } = entry;
+      const {
+        userEmail,
+        userName,
+        branch,
+        contactNumber,
+        companyName,
+        jobTitle,
+        package: pkg,
+        date,
+        graduationYear,
+      } = entry;
 
-      // ✅ Required field check
-      if (!userEmail || !companyName || !pkg || !date) {
+      // ✅ Required fields
+      if (!companyName || !pkg || !date || graduationYear === undefined) {
         summary.skippedCount++;
         summary.errors.push({
           row: rowNum,
@@ -69,7 +73,7 @@ export async function POST(req: NextRequest) {
         continue;
       }
 
-      // ✅ Parse and validate date
+      // ✅ Parse date
       const parsedDate = parseDateFlexible(date);
       if (!parsedDate) {
         summary.skippedCount++;
@@ -82,10 +86,7 @@ export async function POST(req: NextRequest) {
       }
 
       // ✅ Get or create company
-      let company = await prisma.company.findFirst({
-        where: { name: companyName.trim() },
-      });
-
+      let company = await prisma.company.findFirst({ where: { name: companyName.trim() } });
       if (!company) {
         company = await prisma.company.create({
           data: {
@@ -100,18 +101,13 @@ export async function POST(req: NextRequest) {
       // ✅ Get job if available
       let job = null;
       if (jobTitle) {
-        job = await prisma.job.findFirst({
-          where: {
-            title: jobTitle.trim(),
-            companyId: company.id,
-          },
-        });
+        job = await prisma.job.findFirst({ where: { title: jobTitle.trim(), companyId: company.id } });
       }
 
       // ✅ Duplicate check
       const duplicate = await prisma.placement.findFirst({
         where: {
-          userEmail: userEmail.trim(),
+          userEmail: userEmail?.trim(),
           companyId: company.id,
           jobId: job?.id ?? undefined,
         },
@@ -119,27 +115,28 @@ export async function POST(req: NextRequest) {
 
       if (duplicate) {
         summary.skippedCount++;
-        summary.errors.push({
-          row: rowNum,
-          reason: "Duplicate placement record",
-          data: entry,
-        });
+        summary.errors.push({ row: rowNum, reason: "Duplicate placement record", data: entry });
         continue;
       }
 
-      // ✅ Save placement
-      const user = await prisma.user.findUnique({
-        where: { email: userEmail.trim() },
-      });
+      // ✅ Get user if exists (2025+)
+      const user = userEmail
+        ? await prisma.user.findUnique({ where: { email: userEmail.trim() } })
+        : null;
 
+      // ✅ Create placement
       await prisma.placement.create({
         data: {
           userId: user?.id ?? null,
-          userEmail: userEmail.trim(),
+          userEmail: userEmail?.trim() ?? null,
+          userName: user?.name ?? userName ?? null,
+          branch: user?.branch ?? branch ?? null,
+          contactNumber: user?.phone ?? contactNumber ?? null,
           companyId: company.id,
           jobId: job?.id ?? null,
           package: parsedPackage,
           date: parsedDate,
+          graduationYear,
         },
       });
 
@@ -149,12 +146,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, ...summary });
   } catch (error: unknown) {
     console.error("Upload failed:", error);
-    const errorMessage =
-      error instanceof Error ? error.message : "An unknown error occurred";
-
-    return NextResponse.json(
-      { success: false, message: "Upload failed", error: errorMessage },
-      { status: 500 }
-    );
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ success: false, message: "Upload failed", error: errorMessage }, { status: 500 });
   }
 }

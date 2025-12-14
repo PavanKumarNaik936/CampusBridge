@@ -13,7 +13,8 @@ interface Event {
   description: string;
   venue: string;
   startDate: string;
-  status: "upcoming" | "completed" | "cancelled";
+  endDate:string;
+  status: "upcoming" | "completed" | "ongoing";
   createdBy: { name: string };
   attendees?: string[]; // <-- Make sure to include this in your backend response
 }
@@ -23,8 +24,10 @@ export default function EventListingPage() {
   const [filters, setFilters] = useState({ location: "", status: "" });
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [loadingBookmarkId, setLoadingBookmarkId] = useState<string | null>(null);
-  const [loadingRegister, setLoadingRegister] = useState<boolean>(false);
+  
   const [loadingEvents, setLoadingEvents] = useState<boolean>(true);
+
+const [loadingRegisterId, setLoadingRegisterId] = useState<string | null>(null);
 
   const { data: session } = useSession();
   const searchParams = useSearchParams();
@@ -47,6 +50,7 @@ export default function EventListingPage() {
       try {
         const query = new URLSearchParams(filters as any).toString();
         const { data } = await axios.get(`/api/events?${query}`);
+        console.log(data);
         setEvents(data);
       } catch (err) {
         toast.error("❌ Failed to load events.");
@@ -58,25 +62,33 @@ export default function EventListingPage() {
     fetchEvents();
   }, [filters]);
 
+  const getEventStatus = (startDate: string, endDate: string) => {
+    const now = new Date();
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+  
+    if (now < start) return "upcoming";
+    if (now >= start && now <= end) return "ongoing";
+    return "completed";
+  };
+  
   const handleRegister = async (event: Event) => {
     if (!event || !session?.user?.id) return;
-
-    setLoadingRegister(true);
+  
+    setLoadingRegisterId(event.id); // ✅ specific event
     try {
-      // const { data: user } = await axios.get(`/api/events/${session.user.id}`);
       if (session.user.role !== "student") {
         toast.error("Only students can register for events.");
         return;
       }
-
+  
       await axios.put(`/api/events/${event.id}/register`, {});
       toast.success("🎉 Registered successfully!");
-      setSelectedEvent(null);
-
+  
       // Refresh event list after registration
       const { data } = await axios.get(`/api/events`);
       setEvents(data);
-
+      setSelectedEvent(null);
     } catch (err: any) {
       if (err?.response?.data?.error === "Already registered") {
         toast.warning("You’ve already registered for this event.");
@@ -84,9 +96,10 @@ export default function EventListingPage() {
         toast.error("❌ Failed to register. Try again.");
       }
     } finally {
-      setLoadingRegister(false);
+      setLoadingRegisterId(null); // ✅ reset after done
     }
   };
+  
 
   const handleBookmark = async (targetId: string) => {
     setLoadingBookmarkId(targetId);
@@ -106,7 +119,10 @@ export default function EventListingPage() {
 
   return (
     <div className="p-4 max-w-6xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6 text-center text-blue-800">📅 Upcoming & Past Events</h1>
+      <h1 className="text-3xl font-bold mb-6 text-center text-blue-800">
+        📅 Events & Workshops
+      </h1>
+
 
       {/* Filters */}
       <div className="flex flex-wrap gap-4 mb-8 justify-center">
@@ -115,9 +131,12 @@ export default function EventListingPage() {
           value={filters.location}
           onChange={(e) => setFilters({ ...filters, location: e.target.value })}
         >
-          <option value="">All Venues</option>
-          <option value="Auditorium">Auditorium</option>
-          <option value="Virtual">Virtual</option>
+        <option value="">All Venues</option>
+        <option value="Computer Center">Computer Center</option>
+        <option value="Department">Department</option>
+        <option value="Academic Block">Academic Block</option>
+        
+
         </select>
 
         <select
@@ -127,8 +146,8 @@ export default function EventListingPage() {
         >
           <option value="">All Status</option>
           <option value="upcoming">Upcoming</option>
+          <option value="ongoing">Ongoing</option>
           <option value="completed">Completed</option>
-          <option value="cancelled">Cancelled</option>
         </select>
       </div>
 
@@ -156,7 +175,8 @@ export default function EventListingPage() {
                 <FaCalendarAlt className="text-red-500" /> {new Date(event.startDate).toLocaleDateString()}
               </p>
               <p className="text-sm italic text-gray-600 mt-1">
-                📌 Status: {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
+              📌 Status: {getEventStatus(event.startDate, event.endDate).charAt(0).toUpperCase() + getEventStatus(event.startDate, event.endDate).slice(1)}
+
               </p>
               {event.attendees && (
                 <p className="text-sm text-gray-600 flex items-center gap-2 mt-1">
@@ -182,10 +202,10 @@ export default function EventListingPage() {
               ) : (
                 <button
                   onClick={() => handleRegister(event)}
-                  disabled={loadingRegister}
+                  disabled={loadingRegisterId === event.id}
                   className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl font-medium flex items-center gap-2 disabled:opacity-70"
                 >
-                  {loadingRegister ? <FaSpinner className="animate-spin" /> : null}
+                  {loadingRegisterId === event.id  ? <FaSpinner className="animate-spin" /> : null}
                   Register
                 </button>
               )}
@@ -216,7 +236,10 @@ export default function EventListingPage() {
             <ul className="text-sm text-gray-600 space-y-1 mb-4">
               <li><strong>📍 Venue:</strong> {selectedEvent.venue}</li>
               <li><strong>📅 Date:</strong> {new Date(selectedEvent.startDate).toLocaleDateString()}</li>
-              <li><strong>📌 Status:</strong> {selectedEvent.status}</li>
+              <li><strong>📌 Status:</strong> 
+              {getEventStatus(selectedEvent.startDate, selectedEvent.endDate)}
+            </li>
+
               <li><strong>🧑‍💼 Organizer:</strong> {selectedEvent.createdBy.name}</li>
               {selectedEvent.attendees && (
                 <li><strong>👥 Registered:</strong> {selectedEvent.attendees.length}</li>
@@ -234,10 +257,10 @@ export default function EventListingPage() {
             ) : (
               <button
                 onClick={() => handleRegister(selectedEvent)}
-                disabled={loadingRegister}
+                disabled={loadingRegisterId === selectedEvent.id }
                 className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl font-medium flex items-center gap-2 disabled:opacity-70"
               >
-                {loadingRegister ? <FaSpinner className="animate-spin" /> : null}
+                {loadingRegisterId === selectedEvent.id  ? <FaSpinner className="animate-spin" /> : null}
                 Register
               </button>
             )}

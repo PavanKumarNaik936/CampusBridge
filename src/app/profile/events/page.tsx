@@ -202,7 +202,7 @@ export default function MyPostedEvents() {
 
               <p className="flex items-center gap-2">
                 <FaUsers className="text-indigo-500" />
-                Attendees: {event.attendees?.length || 0} /{" "}
+                registrations: {event.attendees?.length || 0} /{" "}
                 {event.maxAttendees ?? "∞"}
               </p>
 

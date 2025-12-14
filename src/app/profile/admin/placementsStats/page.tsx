@@ -19,9 +19,11 @@ export default function PlacementStats() {
   return (
     <section className="p-6 bg-gray-50 rounded-2xl shadow-inner">
       <h2 className="text-2xl font-bold text-blue-800 mb-4">📊 Placement Statistics</h2>
-      <div className="flex justify-end mb-4">
+      {role === "admin" && (
+    <div className="flex justify-end mb-4">
       <DownloadPlacementReport />
     </div>
+  )}
       <PlacementStatsCards />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 my-6">
@@ -30,7 +32,6 @@ export default function PlacementStats() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-6">
-        <OfferTypePieChart />
         <PlacementTrends />
       </div>
 

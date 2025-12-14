@@ -2,10 +2,9 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 
 interface Stats {
-  totalPlaced: number;
   totalOffers: number;
   companiesVisited: number;
-  placementRate: number;
+  placementRate?: number; // ❗ optional now
   highestPackage: number;
   averagePackage: number;
 }
@@ -43,18 +42,19 @@ export default function PlacementStatsCards() {
         console.error("Failed to fetch graduation years:", error);
       }
     };
-  
     fetchYears();
   }, []);
 
   if (loading) return <p>Loading placement stats...</p>;
   if (!stats) return <p>Failed to load stats.</p>;
 
+  // Dynamically build stats array
   const formattedStats = [
-    { label: "Total Students Placed", value: stats.totalPlaced },
     { label: "Total Offers Made", value: stats.totalOffers },
     { label: "Companies Visited", value: stats.companiesVisited },
-    { label: "Placement Rate", value: `${stats.placementRate}%` },
+    ...(stats.placementRate !== undefined
+      ? [{ label: "Placement Rate", value: `${stats.placementRate}%` }]
+      : []),
     { label: "Highest Package", value: `₹${stats.highestPackage} LPA` },
     { label: "Average Package", value: `₹${stats.averagePackage} LPA` },
   ];

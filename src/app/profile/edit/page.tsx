@@ -44,30 +44,30 @@ export default function EditProfilePage() {
     fetchCompanies();
   }, []);
   const courseDurationByBranch: Record<string, number> = {
-    CSE: 4,
-    ECE: 4,
-    MECH: 4,
-    MME: 4,
-    CIVIL: 4,
-    EEE: 4,
-    CHEM: 4,
-    "AI/ML": 4,
+    CSE: 6,
+    ECE: 6,
+    MECH:6,
+    MME: 6,
+    CIVIL:6,
+    EEE: 6,
+    CHEM: 6,
+    "AI/ML":6,
   };
   
 
   useEffect(() => {
     const courseDurationByBranch: Record<string, number> = {
-      CSE: 4,
-      ECE: 4,
-      MECH: 4,
-      MME:4,
-      CIVIL:4,
-      EEE:4,
-      CHEM:4,
-      "AI/ML":4,
+      CSE: 6,
+      ECE: 6,
+      MECH: 6,
+      MME:6,
+      CIVIL:6,
+      EEE:6,
+      CHEM:6,
+      "AI/ML":6,
     };
   
-    const duration = courseDurationByBranch[form.branch || ""] || 4;
+    const duration = courseDurationByBranch[form.branch || ""] || 6;
   
     if (form.admissionYear) {
       const gradYear = parseInt(form.admissionYear.toString()) + duration;

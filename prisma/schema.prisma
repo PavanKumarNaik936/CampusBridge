@@ -129,6 +129,10 @@ model Placement {
   job         Job?     @relation(fields: [jobId], references: [id])
   package     Float
   date        DateTime
+  userName       String?  // ✅ optional: student name
+  contactNumber  String?  // ✅ optional: phone number
+  branch         String?  // ✅ optional: branch/department
+  graduationYear Int?     // ✅ NEW: Graduation year
   createdAt   DateTime? 
 }
 

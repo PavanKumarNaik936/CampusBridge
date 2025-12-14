@@ -4,9 +4,9 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    const years = await prisma.user.findMany({
+    // Fetch distinct graduation years from Placement
+    const years = await prisma.placement.findMany({
       where: {
-        role: "student",
         graduationYear: {
           not: null,
         },
@@ -25,6 +25,9 @@ export async function GET() {
     return NextResponse.json(graduationYears);
   } catch (err) {
     console.error("Error fetching graduation years:", err);
-    return NextResponse.json({ error: "Failed to fetch graduation years" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch graduation years" },
+      { status: 500 }
+    );
   }
 }
